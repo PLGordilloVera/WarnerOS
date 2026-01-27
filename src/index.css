@@ -1,0 +1,24 @@
+/* 1. La nueva forma de importar Tailwind en v4 */
+@import "tailwindcss";
+
+/* 2. La nueva forma de configurar colores (Ya no necesitamos tailwind.config.js) */
+@theme {
+  --color-warner-blue: #0f172a;
+  --color-warner-dark: #020617;
+  --color-warner-gold: #eed254;
+  --color-warner-goldHover: #d4b93a;
+}
+
+/* 3. Estilos globales (Sin el antiguo @apply) */
+body {
+  background-color: #020617; /* bg-slate-950 */
+  color: #e2e8f0;            /* text-slate-200 */
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 4. Tus Scrollbars elegantes */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #64748b; }
