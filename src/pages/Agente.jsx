@@ -11,8 +11,7 @@ import {
 import { Toaster, toast } from 'sonner';
 
 // TU URL DE APPS SCRIPT
-const API_URL = 'https://script.google.com/macros/s/AKfycbwiLEu9LNja_nScMVhy5FCQViwSfDew-T8GqlmgRxiPwoqoJnafttej4eo3zbqdtGHxCQ/exec';
-
+const API_URL = import.meta.env.VITE_API_URL;
 export default function Agente() {
   const { user, login } = useAppStore(); 
   const navigate = useNavigate();

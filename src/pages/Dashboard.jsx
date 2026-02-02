@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Importamos useLocation
 import { useAppStore } from '../store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   SignOut, Kanban, ClipboardText, BookOpen, Database, ChartLineUp, MapTrifold, 
-  House, Signpost, UserPlus, UserMinus, 
+  House, Signpost, UserPlus, UserMinus, HouseLine, // Iconos necesarios
   IdentificationCard, Megaphone, LockKey, Star, Calculator, CalendarCheck, 
   Users, Presentation, CaretRight, Sparkle, SunHorizon, Moon, CloudSun, ArrowUpRight, Buildings
 } from 'phosphor-react';
 import CRM from '../components/CRM';
 import Rendimiento from '../components/Rendimiento';
 
-// --- DATOS Y LISTAS (INTACTOS) ---
+// --- DATOS Y LISTAS ---
 const TOOLS = [
   { id: 'FORMS', label: 'Formularios Maestros', desc: 'Cargar datos de acciones.', icon: <ClipboardText size={22} weight="duotone" /> },
   { id: 'BBDD', label: 'Bases de Datos', desc: 'Matrices de solo lectura.', icon: <Database size={22} weight="duotone" /> },
@@ -20,16 +20,17 @@ const TOOLS = [
 ];
 
 const LINKS_FORMULARIOS = [
-  { label: 'Cartera Inmuebles', icon: <House size={20} />, url: 'https://script.google.com/macros/s/AKfycbzl4ksl9E_Q6FoPIL5a-hMvwca9stniXoUXzjdb3QKTCXM77wB9Ap1683cNs1bLIvUp/exec' },
-  { label: 'Carteles', icon: <Signpost size={20} />, url: 'https://script.google.com/macros/s/AKfycbwWU2ew6Pd73e72Huk_WRLbzfYWKMaz95Oh6j1NvEEnOwok8fsZ_VTBQXHKZGFjMJ7H/exec' },
-  { label: 'Compradores', icon: <UserPlus size={20} />, url: 'https://script.google.com/macros/s/AKfycbwzlFutik7Np4UE48mU5KRsfTQHorsN0eQP2FueLQcRQSNCjZ6AD7LetbPowQ4BbIpm/exec' },
-  { label: 'Vendedores', icon: <UserMinus size={20} />, url: 'https://script.google.com/macros/s/AKfycbxpC08-g_fVzZMOUG27oIERosjSLDWDt5H_2DphKMJe7PRjPsDErRfEV6spitqrqHbh/exec' },
+  // 👇 CAMBIO CLAVE: Ruta interna para Cartera Inmuebles
+  { label: 'Cartera Inmuebles', icon: <House size={20} />, url: '/cartera' }, 
+  { label: 'Carteles', icon: <Signpost size={20} />, url: '/carteles' },
+  { label: 'Comprador', icon: <UserPlus size={20} />, url: '/compradores' },
+  { label: 'Vendedor', icon: <HouseLine size={20} />, url: '/vendedores' }, 
   { label: 'Personal', icon: <IdentificationCard size={20} />, url: 'https://script.google.com/macros/s/AKfycbxpYcgWLme2hTy-SR829kw7-HOSmk7-BRnLi6KFX0ZGbhCJtFktrph2W-uiX6HXvBnT0w/exec' },
   { label: 'Publicidad', icon: <Megaphone size={20} />, url: 'https://docs.google.com/forms/d/1xHEMlOgV-DVXWbA1Z7xl9YkLdJyaAUDnhZkKr9G3iJ8/edit' },
-  { label: 'Reservas', icon: <LockKey size={20} />, url: 'https://script.google.com/macros/s/AKfycbw2ZtDBshPmpq5gzgsQUz-Vywbxp-Kj_Cy54ro7MiVCzuSkfHAyWovN-cg8GhsHYiLpSg/exec' },
-  { label: 'Reseñas', icon: <Star size={20} />, url: 'https://docs.google.com/forms/d/1QDNTUEPd4Ka8Qyy__XYP4CAgK_GOUvekhy0eFPV-r5w/edit' },
-  { label: 'Valuación', icon: <Calculator size={20} />, url: 'https://docs.google.com/forms/d/1oNtJ3_JPhN_Hv1Ids4Wa2bRdxItYWQrv3dKTX1AwvPw/edit' },
-  { label: 'Visita', icon: <CalendarCheck size={20} />, url: 'https://script.google.com/macros/s/AKfycbxxvY-dMaFrS6-wKuaF6x-i7kB_s69XmJw4cAwtXgLps5jO9DNt_u5-qMOlzfr6-e-8/exec' }
+  { label: 'Reservas', icon: <LockKey size={20} />, url: '/reservas' },
+  { label: 'Reseñas', icon: <Star size={20} />, url: '/resenas' },
+  { label: 'Valuación', icon: <Calculator size={20} />, url: '/valuacion' },
+  { label: 'Visita', icon: <CalendarCheck size={20} />, url: '/visitas' }
 ];
 
 const LINKS_BBDD = [
@@ -51,7 +52,11 @@ const WarnerLogoSmall = () => {
 export default function Dashboard() {
   const { user, logout } = useAppStore();
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState('CRM');
+  const location = useLocation(); // Hook para leer el estado de la navegación
+
+  // Inicializar activeView con el estado pasado por navegación o 'CRM' por defecto
+  const [activeView, setActiveView] = useState(location.state?.view || 'CRM');
+  
   const [greeting, setGreeting] = useState('');
   const [greetingIcon, setGreetingIcon] = useState(null);
 
@@ -69,6 +74,17 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Efecto para actualizar la vista si cambia el estado de navegación (ej. al volver de un formulario)
+  useEffect(() => {
+    if (location.state?.view) {
+      setActiveView(location.state.view);
+      // Opcional: Limpiar el estado para evitar que al recargar se quede pegado, 
+      // aunque en este caso es útil que persista si recarga.
+      // window.history.replaceState({}, document.title); 
+    }
+  }, [location.state]);
+
+
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
@@ -76,7 +92,6 @@ export default function Dashboard() {
 
   const NavItem = ({ view, icon, label, mobile = false }) => {
     const isActive = activeView === view;
-    // Estilos condicionales para móvil vs escritorio
     const baseClasses = mobile 
       ? "relative flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 w-full"
       : "relative flex items-center gap-3 px-6 py-3 rounded-full text-base font-bold transition-all duration-300 whitespace-nowrap";
@@ -92,44 +107,56 @@ export default function Dashboard() {
         {isActive && !mobile && (
           <motion.div layoutId="capsule" className="absolute inset-0 bg-gradient-to-r from-amber-200 to-amber-100 rounded-full shadow-[0_0_20px_rgba(253,230,138,0.4)]" />
         )}
-        
-        {/* En móvil, si está activo, un pequeño indicador brillante arriba */}
         {isActive && mobile && (
            <motion.div layoutId="mobile-glow" className="absolute -top-1 w-8 h-1 bg-amber-200 rounded-full shadow-[0_0_10px_rgba(253,230,138,0.8)]" />
         )}
-
         <span className="relative z-10">{icon}</span>
-        {/* En móvil el label es más pequeño */}
         <span className={`relative z-10 ${mobile ? 'text-[10px] mt-1 font-medium' : ''}`}>{label}</span>
       </button>
     );
   };
 
-  const ActionCard = ({ link }) => (
-    <motion.a 
-      href={link.url} target="_blank" rel="noreferrer"
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }} // Feedback táctil en móvil
-      className="group relative flex flex-col justify-between h-32 md:h-36 p-5 md:p-6 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:border-amber-200/40 transition-all duration-300"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-200/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-      
-      <div className="flex justify-between items-start z-10">
-        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-amber-200 shadow-inner group-hover:bg-amber-900/20 transition-all duration-300">
-          {link.icon}
+  const ActionCard = ({ link }) => {
+    const isExternal = link.url.startsWith('http');
+    const cardClasses = "group relative flex flex-col justify-between h-32 md:h-36 p-5 md:p-6 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:border-amber-200/40 transition-all duration-300 cursor-pointer";
+
+    const CardContent = () => (
+      <>
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-200/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        <div className="flex justify-between items-start z-10">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-amber-200 shadow-inner group-hover:bg-amber-900/20 transition-all duration-300">
+            {link.icon}
+          </div>
+          <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-amber-200 text-slate-500 group-hover:text-slate-900 transition-colors">
+            <ArrowUpRight size={14} weight="bold" className={isExternal ? "" : "rotate-45"} /> 
+          </div>
         </div>
-        <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-amber-200 text-slate-500 group-hover:text-slate-900 transition-colors">
-          <ArrowUpRight size={14} weight="bold" />
-        </div>
-      </div>
-      <span className="font-bold text-slate-200 text-xs md:text-sm tracking-wide z-10 group-hover:text-amber-100 transition-colors line-clamp-2">
-        {link.label}
-      </span>
-    </motion.a>
-  );
+        <span className="font-bold text-slate-200 text-xs md:text-sm tracking-wide z-10 group-hover:text-amber-100 transition-colors line-clamp-2">
+          {link.label}
+        </span>
+      </>
+    );
+
+    return isExternal ? (
+      <motion.a 
+        href={link.url} target="_blank" rel="noreferrer"
+        whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
+        className={cardClasses}
+      >
+        <CardContent />
+      </motion.a>
+    ) : (
+      <motion.div 
+        onClick={() => navigate(link.url)}
+        whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
+        className={cardClasses}
+      >
+        <CardContent />
+      </motion.div>
+    );
+  };
 
   return (
-    // h-[100dvh] ayuda en móviles con barras de navegación dinámicas
     <div className="flex flex-col h-[100dvh] bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-amber-200 selection:text-slate-900 relative">
       
       {/* FONDO */}
@@ -139,22 +166,19 @@ export default function Dashboard() {
          <img src="/logo.png" alt="" className="w-[800px] opacity-[0.03] grayscale blur-sm" />
       </div>
 
-      {/* --- HEADER ESCRITORIO (Visible solo en md/lg) --- */}
+      {/* --- HEADER ESCRITORIO --- */}
       <header className="hidden md:flex absolute top-8 left-1/2 -translate-x-1/2 z-50 items-center p-2 bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/5 w-auto max-w-[98vw]">
-        {/* LOGO */}
         <div className="flex items-center gap-6 pl-8 pr-6 border-r border-white/10 shrink-0">
            <WarnerLogoSmall />
            <span className="font-black tracking-[0.2em] text-sm text-white hidden xl:block uppercase">WARNER OS</span>
         </div>
 
-        {/* MENÚ NAV ESCRITORIO */}
         <nav className="flex items-center px-6 gap-4 shrink-0">
           <NavItem view="CRM" icon={<Kanban size={24} weight="duotone" />} label="Pipeline" />
           <NavItem view="RENDIMIENTO" icon={<ChartLineUp size={24} weight="duotone" />} label="Data" />
           <NavItem view="HUB" icon={<Sparkle size={24} weight="duotone" />} label="Hub" />
         </nav>
 
-        {/* PERFIL ESCRITORIO */}
         <div className="flex items-center gap-4 pl-6 pr-4 border-l border-white/10 shrink-0">
           <button 
             onClick={() => navigate('/agente')} 
@@ -175,7 +199,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* --- HEADER MÓVIL (Barra superior) --- */}
+      {/* --- HEADER MÓVIL --- */}
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 z-50 sticky top-0">
         <div className="flex items-center gap-3">
           <WarnerLogoSmall />
@@ -192,18 +216,15 @@ export default function Dashboard() {
       </header>
 
       {/* --- CONTENIDO PRINCIPAL --- */}
-      {/* Ajuste de padding: pt-4 en móvil, pt-36 en desktop. pb-24 en móvil para la barra inferior */}
       <main className="flex-1 w-full h-full pt-4 md:pt-36 px-4 md:px-8 pb-24 md:pb-6 overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           
-          {/* VISTA: CRM */}
           {activeView === 'CRM' && (
             <motion.div key="CRM" initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="h-full w-full">
               <CRM />
             </motion.div>
           )}
 
-          {/* VISTA: RENDIMIENTO */}
           {activeView === 'RENDIMIENTO' && (
             <motion.div 
                 key="RENDIMIENTO" 
@@ -216,13 +237,10 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          {/* VISTA: HUB (HERRAMIENTAS) */}
           {activeView === 'HUB' && (
             <motion.div key="HUB" initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} 
-              // En móvil es columna, en desktop fila.
               className="h-full w-full max-w-[98%] md:max-w-[95%] mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6"
             >
-                {/* Panel Izquierdo (Lista de herramientas) - Ahora ocupa todo en móvil */}
                 <div className="w-full lg:w-80 flex flex-col gap-4 shrink-0 flex-1 lg:flex-none h-full overflow-hidden">
                   <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl h-full overflow-y-auto custom-scroll">
                     <h3 className="text-2xl md:text-3xl font-black text-white mb-1">Central Hub</h3>
@@ -242,7 +260,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Panel Derecho (Decorativo) - OCULTO EN MÓVIL para ahorrar espacio */}
                 <div className="hidden lg:flex flex-1 bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 items-center justify-center text-slate-500 shadow-inner">
                     <div className="text-center max-w-md">
                         <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-[0_0_30px_rgba(253,230,138,0.1)]">
@@ -255,7 +272,6 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          {/* SUB-VISTAS DEL HUB - Grid responsive */}
           {activeView === 'FORMS' && (
              <motion.div key="FORMS" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto overflow-y-auto custom-scroll pb-20 px-1 md:px-4">
                 <header className="mb-6 md:mb-8 mt-2 md:mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4">

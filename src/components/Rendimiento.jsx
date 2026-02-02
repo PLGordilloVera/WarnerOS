@@ -186,21 +186,26 @@ export default function Rendimiento() {
       }
   });
 
-  const handleSendMessage = async () => {
+    const handleSendMessage = async () => {
     if(!chatInput.trim()) return;
+    setChatMessages(prev => [...prev, { type: 'user', text: chatInput }]);
     const userMsg = chatInput;
-    setChatMessages(prev => [...prev, { type: 'user', text: userMsg }]);
     setChatInput("");
     setAiLoading(true);
+    
     try {
         const response = await fetch(`${API_URL}?action=chatAI`, {
-            method: 'POST', body: JSON.stringify({ question: userMsg }), headers: { "Content-Type": "text/plain;charset=utf-8" }
+            method: 'POST', 
+            body: JSON.stringify({ question: userMsg }), 
+            headers: { "Content-Type": "text/plain;charset=utf-8" }
         });
         const json = await response.json();
-        setChatMessages(prev => [...prev, { type: 'ai', text: json.answer || "Sin respuesta." }]);
-    } catch (e) { setChatMessages(prev => [...prev, { type: 'ai', text: "⚠️ Error IA." }]); }
+        setChatMessages(prev => [...prev, { type: 'ai', text: json.answer }]);
+    } catch (e) { 
+        setChatMessages(prev => [...prev, { type: 'ai', text: "⚠️ Error de conexión con el Analista." }]); 
+    }
     setAiLoading(false);
-  };
+    };
 
   if (loading) return <div className="h-full flex flex-col items-center justify-center text-amber-200 gap-4"><CircleNotch size={48} className="animate-spin"/><span className="font-orbitron tracking-widest text-sm animate-pulse">CARGANDO MÉTRICAS...</span></div>;
   if (error) return <div className="h-full flex items-center justify-center text-red-400 font-rajdhani text-xl"><Warning size={32} className="mr-2"/> {error}</div>;

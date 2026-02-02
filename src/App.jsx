@@ -6,7 +6,14 @@ import { useAppStore } from './store/useAppStore';
 import Login from './pages/Login';
 import Dashboard from "./pages/Dashboard";
 import Agente from './pages/Agente';
-
+import Carteles from './components/Carteles'; 
+import Visitas from './components/Visitas';
+import Compradores from './components/Compradores';
+import Vendedores from './components/Vendedores';
+import Cartera from './components/Cartera';
+import Reservas from './components/Reservas';
+import Valuacion from './components/Valuacion';
+import Resenas from './components/Resenas';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAppStore();
@@ -28,10 +35,58 @@ export default function App() {
           </ProtectedRoute>
         } />
 
-        {/* Ruta de Perfil (Editar foto, etc) */}
         <Route path="/agente" element={
           <ProtectedRoute>
             <Agente />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/carteles" element={
+          <ProtectedRoute>
+            <Carteles />
+          </ProtectedRoute>
+        } />
+
+
+        <Route path="/visitas" element={
+          <ProtectedRoute>
+            <Visitas />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/compradores" element={
+          <ProtectedRoute>
+            <Compradores />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/vendedores" element={
+          <ProtectedRoute>
+            <Vendedores />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/cartera" element={
+          <ProtectedRoute>
+            <Cartera />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/reservas" element={
+          <ProtectedRoute>
+            <Reservas />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/valuacion" element={
+          <ProtectedRoute>
+            <Valuacion />
+          </ProtectedRoute>
+        } />
+ 
+         <Route path="/resenas" element={
+          <ProtectedRoute>
+            <Resenas />
           </ProtectedRoute>
         } />
 
