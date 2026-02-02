@@ -35,22 +35,19 @@ export default function CRM() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [tempNote, setTempNote] = useState('');
   const [tempDate, setTempDate] = useState('');
+  const [tempEtapa, setTempEtapa] = useState(''); // Estado para modificar etapa en el modal
   const [saving, setSaving] = useState(false);
 
-  // Función de carga con ruteo por usuarioRequested
   const fetchClients = useCallback(async (isManual = false) => {
     if (!user?.name) return;
-
     if (isManual) setRefreshing(true);
     else setLoading(true);
 
     try {
       const userParam = encodeURIComponent(user.name);
       const url = `${API_URL}?action=getData&userRequested=${userParam}`;
-      
       const response = await fetch(url);
       const data = await response.json();
-      
       setClients(data);
       if (isManual) toast.success('Base de datos sincronizada');
     } catch (error) {
@@ -66,6 +63,13 @@ export default function CRM() {
     fetchClients();
   }, [fetchClients]);
 
+  const openModal = (client) => {
+    setSelectedClient(client);
+    setTempDate(client.agenda ? client.agenda.split('T')[0] : '');
+    setTempNote('');
+    setTempEtapa(client.etapa || 'INGRESO');
+  };
+
   const handleNewContact = (type) => {
     setShowNewMenu(false);
     if (type === 'COMPRADOR') navigate('/compradores');
@@ -75,7 +79,6 @@ export default function CRM() {
   const handleDrop = async (e, newStage) => {
     e.preventDefault();
     if (!draggedItemId) return;
-
     const clientToMove = clients.find(c => c.id === draggedItemId);
     if (!clientToMove || clientToMove.etapa === newStage) return;
 
@@ -88,7 +91,7 @@ export default function CRM() {
     setSelectedClient(updatedClient);
     setTempDate(updatedClient.agenda ? updatedClient.agenda.split('T')[0] : '');
     setTempNote('');
-    
+    setTempEtapa(newStage);
     toast.info('¡Movimiento registrado! Define el próximo paso.');
   };
 
@@ -99,12 +102,12 @@ export default function CRM() {
     }
 
     setSaving(true);
-    let updatedNotes = selectedClient.notas || '';
+    let updatedNotes = selectedClient.notes || selectedClient.notas || '';
     if (tempNote.trim()) {
       updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
     }
 
-    const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
+    const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes, etapa: tempEtapa };
 
     try {
       await fetch(`${API_URL}?action=updateClient`, {
@@ -112,14 +115,14 @@ export default function CRM() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           id: finalClient.id,
-          etapa: finalClient.etapa,
+          etapa: tempEtapa,
           agenda: tempDate,
           nota: tempNote
         })
       });
       
       setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
-      toast.success('Gestión actualizada');
+      toast.success('Gestión y Etapa actualizadas');
       setSelectedClient(null);
     } catch (error) {
       toast.error('Error al guardar cambios');
@@ -133,7 +136,6 @@ export default function CRM() {
     const actionDate = new Date(client.agenda.includes('T') ? client.agenda : `${client.agenda}T12:00:00`);
     const today = new Date(); today.setHours(0,0,0,0);
     actionDate.setHours(0,0,0,0);
-
     if (actionDate < today) return { status: 'danger', msg: 'Vencido' };
     if (actionDate.getTime() === today.getTime()) return { status: 'warning', msg: 'Hoy' };
     return { status: 'safe', msg: 'Al día' };
@@ -157,7 +159,7 @@ export default function CRM() {
 
   const AgendaCard = ({ client }) => (
     <div 
-      onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
+      onClick={() => openModal(client)}
       className="bg-slate-900/60 border border-white/5 p-4 rounded-xl hover:border-amber-200/30 transition-all cursor-pointer group"
     >
       <div className="flex justify-between items-start">
@@ -177,7 +179,6 @@ export default function CRM() {
     <div className="flex flex-col h-full bg-slate-900/40 backdrop-blur-xl p-3 md:p-6 rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
       <Toaster position="top-center" theme="dark" richColors />
 
-      {/* CABECERA */}
       <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-6 gap-4 shrink-0">
         <div className="flex flex-col md:flex-row gap-3">
             <div className="flex bg-slate-950/50 p-1 rounded-xl border border-white/5">
@@ -211,7 +212,6 @@ export default function CRM() {
         </div>
       </div>
 
-      {/* VISTAS */}
       <div className="flex-1 min-h-0 overflow-hidden">
         {viewMode === 'KANBAN' ? (
           <div className="flex h-full gap-5 overflow-x-auto custom-scroll pb-4">
@@ -234,7 +234,7 @@ export default function CRM() {
                       <motion.div 
                         key={client.id} layoutId={client.id}
                         draggable onDragStart={(e) => setDraggedItemId(client.id)}
-                        onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
+                        onClick={() => openModal(client)}
                         className="bg-slate-800/40 p-4 rounded-2xl border border-white/5 cursor-pointer hover:border-amber-200/30 transition-all shadow-lg active:scale-95"
                       >
                         <h4 className="text-sm font-bold text-white mb-2 leading-tight">{client.nom}</h4>
@@ -267,7 +267,6 @@ export default function CRM() {
         )}
       </div>
 
-      {/* MODAL GESTION */}
       <AnimatePresence>
         {selectedClient && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -275,11 +274,31 @@ export default function CRM() {
               <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
                 <div>
                   <h3 className="text-xl font-bold text-white">{selectedClient.nom}</h3>
-                  <p className="text-[10px] text-amber-200 font-black tracking-widest uppercase">{selectedClient.etapa} • {selectedClient.cat}</p>
+                  <p className="text-[10px] text-amber-200 font-black tracking-widest uppercase">{selectedClient.cat}</p>
                 </div>
                 <button onClick={() => setSelectedClient(null)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X size={24} className="text-slate-500" /></button>
               </div>
-              <div className="p-6 space-y-6">
+              
+              <div className="p-6 space-y-5">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 block mb-2 uppercase tracking-widest">Etapa del Negocio</label>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                    {STAGES.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => setTempEtapa(s.id)}
+                        className={`py-2 px-1 rounded-xl text-[9px] font-black transition-all border ${
+                          tempEtapa === s.id 
+                            ? 'bg-amber-200 text-slate-900 border-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.3)]' 
+                            : 'bg-slate-950 text-slate-500 border-white/5 hover:border-white/20'
+                        }`}
+                      >
+                        {s.label.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 block mb-2 uppercase tracking-widest">Próxima Acción</label>
@@ -287,21 +306,24 @@ export default function CRM() {
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 block mb-2 uppercase tracking-widest">WhatsApp</label>
-                    <a href={`https://wa.me/${selectedClient.tel?.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full bg-green-500/10 text-green-400 p-3 rounded-xl border border-green-500/20 font-bold text-xs hover:bg-green-500/20 transition-all"><WhatsappLogo size={20} weight="fill"/> ENVIAR MENSAJE</a>
+                    <a href={`https://wa.me/${selectedClient.tel?.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full bg-green-500/10 text-green-400 p-3 rounded-xl border border-green-500/20 font-bold text-xs hover:bg-green-500/20 transition-all"><WhatsappLogo size={20} weight="fill"/> ENVIAR</a>
                   </div>
                 </div>
+
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 block mb-2 uppercase tracking-widest">Añadir Comentario</label>
-                  <textarea value={tempNote} onChange={(e) => setTempNote(e.target.value)} placeholder="¿Qué se habló?" className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-sm text-white h-32 resize-none focus:outline-none focus:border-amber-200/50 transition-all" />
+                  <textarea value={tempNote} onChange={(e) => setTempNote(e.target.value)} placeholder="¿Qué se habló?" className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-sm text-white h-24 resize-none focus:outline-none focus:border-amber-200/50 transition-all" />
                 </div>
+
                 {selectedClient.notas && (
                     <div className="bg-slate-950/30 rounded-xl p-4 border border-white/5">
                         <label className="text-[9px] font-bold text-slate-600 block mb-2 uppercase tracking-widest">Historial</label>
                         <div className="text-[11px] text-slate-400 whitespace-pre-wrap max-h-32 overflow-y-auto custom-scroll leading-relaxed">{selectedClient.notas}</div>
                     </div>
                 )}
+
                 <button onClick={handleSaveModal} disabled={saving} className="w-full bg-amber-200 text-slate-900 font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-amber-300 transition-all shadow-xl shadow-amber-200/10 disabled:opacity-50">
-                  {saving ? <SpinnerGap size={20} className="animate-spin" /> : <FloppyDisk size={20} weight="bold" />} ACTUALIZAR GESTIÓN
+                  {saving ? <SpinnerGap size={20} className="animate-spin" /> : <FloppyDisk size={20} weight="bold" />} ACTUALIZAR FICHA
                 </button>
               </div>
             </motion.div>
@@ -309,7 +331,6 @@ export default function CRM() {
         )}
       </AnimatePresence>
 
-      {/* MODAL SELECCIÓN NUEVO REGISTRO */}
       <AnimatePresence>
         {showNewMenu && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-6" onClick={() => setShowNewMenu(false)}>
@@ -318,7 +339,6 @@ export default function CRM() {
                 <UserPlus size={32} weight="duotone" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tight">Nuevo Registro</h3>
-              <p className="text-slate-400 text-xs mb-8">Selecciona el tipo de cliente</p>
               <div className="space-y-3">
                 <button onClick={() => handleNewContact('COMPRADOR')} className="w-full group flex items-center justify-between p-4 bg-slate-950 border border-white/5 rounded-2xl hover:border-amber-200/50 transition-all">
                   <div className="flex items-center gap-4 text-left">
@@ -346,7 +366,6 @@ export default function CRM() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
