@@ -25,8 +25,8 @@ const LINKS_FORMULARIOS = [
   { label: 'Carteles', icon: <Signpost size={20} />, url: '/carteles' },
   { label: 'Comprador', icon: <UserPlus size={20} />, url: '/compradores' },
   { label: 'Vendedor', icon: <HouseLine size={20} />, url: '/vendedores' }, 
-  { label: 'Personal', icon: <IdentificationCard size={20} />, url: 'https://script.google.com/macros/s/AKfycbxpYcgWLme2hTy-SR829kw7-HOSmk7-BRnLi6KFX0ZGbhCJtFktrph2W-uiX6HXvBnT0w/exec' },
-  { label: 'Publicidad', icon: <Megaphone size={20} />, url: 'https://docs.google.com/forms/d/1xHEMlOgV-DVXWbA1Z7xl9YkLdJyaAUDnhZkKr9G3iJ8/edit' },
+  { label: 'Personal', icon: <IdentificationCard size={20} />, url: import.meta.env.VITE_LINK_FORM_PERSONAL },
+  { label: 'Publicidad', icon: <Megaphone size={20} />, url: import.meta.env.VITE_LINK_FORM_PUBLICIDAD },
   { label: 'Reservas', icon: <LockKey size={20} />, url: '/reservas' },
   { label: 'Reseñas', icon: <Star size={20} />, url: '/resenas' },
   { label: 'Valuación', icon: <Calculator size={20} />, url: '/valuacion' },
@@ -34,13 +34,13 @@ const LINKS_FORMULARIOS = [
 ];
 
 const LINKS_BBDD = [
-  { label: 'Cartera Inmuebles', icon: <House size={20} />, url: 'https://docs.google.com/spreadsheets/d/1Y80pLiAlu7RBZApq6KyOYIHBgCMYPKB76NpjpbhC-7w/edit' },
-  { label: 'Clientes', icon: <Users size={20} />, url: 'https://docs.google.com/spreadsheets/d/18pRQM5NbZ0oOqQjFTY_lJD5J6bCWVccZGOuc78-XIWM/edit' },
-  { label: 'Valuación', icon: <Calculator size={20} />, url: 'https://docs.google.com/spreadsheets/d/1SDUb-IJjsTxbMKj6ZOy1rLxjZRrNO5Eh-vUaWYNFFNs/edit' },
-  { label: 'Visitas', icon: <CalendarCheck size={20} />, url: 'https://docs.google.com/spreadsheets/d/1-IUCSxz3Rh9vmajMxunfWEXcVjW2OjkBmtQ_B03Cn7k/edit' },
-  { label: 'Publicidad', icon: <Megaphone size={20} />, url: 'https://docs.google.com/spreadsheets/d/12Bi0Hn1FO0Fu5ZHT2c1BqVJKxD-ILEwo07TH0R15wEU/edit' },
-  { label: 'Carteles', icon: <Signpost size={20} />, url: 'https://docs.google.com/spreadsheets/d/1y1Ten0vMXceRXGzZELn63msgmtrluJltPnaBfIFWQdg/edit' },
-  { label: 'Reseñas', icon: <Star size={20} />, url: 'https://docs.google.com/spreadsheets/d/134NRMjC-CJH9Aeipa3D9XE_4XhfLd7nO6b1j-sQfX2U/edit' }
+  { label: 'Cartera Inmuebles', icon: <House size={20} />, url: import.meta.env.VITE_LINK_BBDD_CARTERA },
+  { label: 'Clientes', icon: <Users size={20} />, url: import.meta.env.VITE_LINK_BBDD_CLIENTES },
+  { label: 'Valuación', icon: <Calculator size={20} />, url: import.meta.env.VITE_LINK_BBDD_VALUACION },
+  { label: 'Visitas', icon: <CalendarCheck size={20} />, url: import.meta.env.VITE_LINK_BBDD_VISITAS },
+  { label: 'Publicidad', icon: <Megaphone size={20} />, url: import.meta.env.VITE_LINK_BBDD_PUBLICIDAD },
+  { label: 'Carteles', icon: <Signpost size={20} />, url: import.meta.env.VITE_LINK_BBDD_CARTELES },
+  { label: 'Reseñas', icon: <Star size={20} />, url: import.meta.env.VITE_LINK_BBDD_RESENAS }
 ];
 
 const WarnerLogoSmall = () => {
