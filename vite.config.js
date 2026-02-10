@@ -9,6 +9,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        maximumFileSizeToCacheInBytes: 10000000, // <--- AQUI ESTA LA SOLUCION (10 MB)
+      },
       manifest: {
         name: 'WarnerOS Inmobiliaria',
         short_name: 'Tasaciones',
