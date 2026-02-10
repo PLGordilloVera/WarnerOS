@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -14,12 +13,13 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10000000,
       },
       manifest: {
-        // 👇 AQUÍ ESTÁ EL CAMBIO DE NOMBRE
-        name: 'WarnerOS',       // Nombre completo (Splash screen)
-        short_name: 'WarnerOS', // Nombre debajo del ícono
+        name: 'WarnerOS',
+        short_name: 'WarnerOS',
         description: 'Sistema de Gestión Inmobiliaria',
-        theme_color: '#000000',
-        background_color: '#000000',
+        // 👇 AQUÍ ESTÁ EL CAMBIO: AZUL WARNER
+        theme_color: '#002b5c',      // Color de la barra de estado del celu
+        background_color: '#002b5c', // Color de fondo mientras carga el logo
+        // 👆 --------------------------------
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
