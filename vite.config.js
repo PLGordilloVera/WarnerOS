@@ -11,14 +11,16 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        maximumFileSizeToCacheInBytes: 10000000, // <--- AQUI ESTA LA SOLUCION (10 MB)
+        maximumFileSizeToCacheInBytes: 10000000,
       },
       manifest: {
         name: 'WarnerOS Inmobiliaria',
         short_name: 'Tasaciones',
         description: 'Sistema de Gestión Inmobiliaria',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        // 👇 AQUÍ ESTÁ EL CAMBIO: PONEMOS TODO EN NEGRO
+        theme_color: '#000000',
+        background_color: '#000000',
+        // 👆 ---------------------------------------
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
