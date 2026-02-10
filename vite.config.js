@@ -14,13 +14,12 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10000000,
       },
       manifest: {
-        name: 'WarnerOS Inmobiliaria',
-        short_name: 'Tasaciones',
+        // 👇 AQUÍ ESTÁ EL CAMBIO DE NOMBRE
+        name: 'WarnerOS',       // Nombre completo (Splash screen)
+        short_name: 'WarnerOS', // Nombre debajo del ícono
         description: 'Sistema de Gestión Inmobiliaria',
-        // 👇 AQUÍ ESTÁ EL CAMBIO: PONEMOS TODO EN NEGRO
         theme_color: '#000000',
         background_color: '#000000',
-        // 👆 ---------------------------------------
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
