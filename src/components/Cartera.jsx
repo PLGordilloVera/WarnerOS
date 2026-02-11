@@ -215,6 +215,8 @@ export default function Cartera() {
       // Usamos no-cors si es necesario, o cors normal si el script lo soporta
       await fetch(API_URL, {
         method: 'POST',
+        // NO AGREGUES 'Content-Type': 'application/json' en los headers manualmente
+        // Google Apps Script a veces lo rechaza. Envía el body como string plano pero en formato JSON.
         body: JSON.stringify(payload)
       });
       toast.success("¡Propiedad registrada exitosamente!");
