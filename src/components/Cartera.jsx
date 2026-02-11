@@ -5,13 +5,13 @@ import { motion } from 'framer-motion';
 import { 
   House, CaretRight, User, SpinnerGap, MapPin, 
   CurrencyDollar, Ruler, Waves, Star, Link as LinkIcon, CheckCircle,
-  ToggleLeft, ToggleRight, FileText, IdentificationBadge
+  ToggleLeft, ToggleRight, FileText
 } from 'phosphor-react';
 import { Toaster, toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// --- 1. COMPONENTES EXTERNOS (ESTÁTICOS PARA EVITAR RE-RENDER) ---
+// --- 1. COMPONENTES EXTERNOS (ESTÁTICOS) ---
 
 const SectionCard = ({ title, icon, children, className = "" }) => (
   <div className={`bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl ${className}`}>
@@ -118,13 +118,101 @@ export default function Cartera() {
 
     setLoading(true);
 
+    // --- AQUÍ ESTÁ LA SOLUCIÓN ---
+    // Creamos un objeto donde las claves (KEYS) son EXACTAMENTE las columnas del Excel.
     const payload = {
       action: 'addCartera',
-      agente_captador: user?.name,
-      ...formData
+      
+      // Identificación y Estado
+      'PADRON_CATASTRAL': formData.padron_catastral,
+      'TIPO_DE_INMUEBLE': formData.tipo_inmueble,
+      'ESTADO': formData.estado, // (Captado, Vendido, etc) - Columna BA
+      'ESTADO_INMUEBLE': '',     // Columna I (Estado físico general, lo dejamos vacío por ahora)
+      
+      // Detalles Físicos (Puntajes)
+      'HUMEDAD': formData.humedad,
+      'PINTURA': formData.pintura,
+      'PISOS': formData.pisos,
+      'REVOQUES': formData.revoques,
+      'FACHADA': formData.fachada,
+      
+      // Operación
+      'OPERACION': formData.operacion,
+      'PRECIO_LISTA': formData.precio_lista,
+      'PRECIO_CIERRE': formData.precio_cierre,
+      'MONEDA': formData.moneda,
+      'EXPENSAS': formData.expensas,
+      'VALOR EXPENSAS': formData.valor_expensas, // Ojo con el espacio
+      'CREDITO_HIPOTECARIO': formData.credito_hipotecario,
+      'DOCUMENTACION': formData.documentacion,
+      
+      // Superficies y Ambientes
+      'METROS_CUADRADOS_CONSTRUIDOS': formData.m2_construidos,
+      'METROS_CUADRADOS_TERRENO': formData.m2_terreno,
+      'ANTIGUEDAD': formData.antiguedad,
+      'AMBIENTES': formData.ambientes,
+      'DORMITORIOS': formData.dormitorios,
+      'COCHERAS': formData.cocheras,
+      'BAÑOS': formData.banos,
+      'DISPOSICION': formData.disposicion,
+      'AMOBLADO': formData.amoblado,
+      
+      // Amenities y Características
+      'BALCON': formData.balcon,
+      'TERRAZA': formData.terraza,
+      'PATIO_JARDIN': formData.patio_jardin,
+      'ESPACIO_VERDE': formData.espacio_verde,
+      'PISCINA': formData.piscina,
+      'QUINCHO': formData.quincho,
+      'ASADOR': formData.asador,
+      'APTO_ MASCOTAS': formData.apto_mascotas, // Ojo: espacio raro "APTO_ MASCOTAS"
+      'ASCENSOR': formData.ascensor,
+      'SEGURIDAD': formData.seguridad,
+      
+      // Ubicación
+      'PROVINCIA': formData.provincia,
+      'CIUDAD': formData.ciudad,
+      'BARRIO': formData.barrio,
+      'CALLE': formData.calle,
+      'NUMERO': formData.numero,
+      'CODIGO_POSTAL': formData.codigo_postal,
+      'DIRECCION': `${formData.calle} ${formData.numero}, ${formData.ciudad}`, // Calculado
+      'PISO': formData.piso,
+      'UNIDAD': formData.unidad,
+      'CANTIDAD_DE_PISOS': formData.cantidad_pisos,
+      'LATITUD': '',
+      'COORDENADAS': '',
+      
+      // Multimedia
+      'LINK_FOTOS': formData.link_fotos,
+      'LINK_VIDEOS': formData.link_videos,
+      'LINK_PLANOS': formData.link_planos,
+      'LINK DOCUMENTACION': formData.link_documentacion, // Ojo con el espacio
+      
+      // Gestión y Agente
+      'FECHA_CAPTACION': formData.fecha_captacion,
+      'FECHA_RESERVA': '',
+      'FECHA_CIERRE': '',
+      'VISITAS_RECIBIDAS': '0',
+      'AGENTE_CAPTADOR': user?.name || 'Sistema',
+      'AGENTE_COLOCADOR': '',
+      
+      // Servicios
+      'AGUA_CORRIENTE': formData.agua_corriente,
+      'LUZ': formData.luz,
+      'GAS_NATURAL': formData.gas_natural,
+      'CLOACAS': formData.cloacas,
+      'INTERNET': formData.internet,
+      
+      // Propietario
+      'NOMBRE_PROPIETARIO': formData.nombre_propietario,
+      'CELULAR_PROPIETARIO': formData.celular_propietario,
+      'EMAIL_PROPIETARIO': formData.email_propietario,
+      'FIRMO EXCLUSIVIDAD': formData.firmo_exclusividad // Ojo con el espacio
     };
 
     try {
+      // Usamos no-cors si es necesario, o cors normal si el script lo soporta
       await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify(payload)
@@ -169,11 +257,7 @@ export default function Cartera() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
               {/* SECCIÓN 1: GESTIÓN INTERNA */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <FileText size={16} /> Identificación
-                </h3>
-                
+              <SectionCard title="Identificación" icon={<FileText size={16} />}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     {/* Agente Read-Only */}
                     <div>
@@ -191,13 +275,10 @@ export default function Cartera() {
                     <Input label="Padrón Catastral" name="padron_catastral" type="number" value={formData.padron_catastral} onChange={handleChange} required />
                     <Select label="Tipo Inmueble" name="tipo_inmueble" value={formData.tipo_inmueble} onChange={handleChange} options={['CASA','DEPARTAMENTO','TERRENO','DUPLEX','LOCAL','GALPON','OFICINA']} required />
                 </div>
-              </div>
+              </SectionCard>
 
               {/* SECCIÓN 2: UBICACIÓN */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <MapPin size={16} /> Ubicación
-                </h3>
+              <SectionCard title="Ubicación" icon={<MapPin size={16} />}>
                 <div className="space-y-5">
                     <Input label="Calle" name="calle" value={formData.calle} onChange={handleChange} required />
                     <div className="grid grid-cols-2 gap-5">
@@ -214,13 +295,10 @@ export default function Cartera() {
                         <Input label="Provincia" name="provincia" value={formData.provincia} onChange={handleChange} />
                     </div>
                 </div>
-              </div>
+              </SectionCard>
 
               {/* SECCIÓN 3: VALORES */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <CurrencyDollar size={16} /> Operación y Valores
-                </h3>
+              <SectionCard title="Operación y Valores" icon={<CurrencyDollar size={16} />}>
                 <div className="grid grid-cols-2 gap-5 mb-5">
                     <Select label="Operación" name="operacion" value={formData.operacion} onChange={handleChange} options={['VENTA','ALQUILER']} />
                     <Select label="Moneda" name="moneda" value={formData.moneda} onChange={handleChange} options={['DOLARES','PESOS']} />
@@ -241,13 +319,10 @@ export default function Cartera() {
                     <BooleanToggle label="Apto Crédito" isYes={formData.credito_hipotecario === 'SI'} onToggle={() => handleToggle('credito_hipotecario')} />
                     <Select label="Documentación" name="documentacion" value={formData.documentacion} onChange={handleChange} options={['ESCRITURA PERFECTA','BOLETO C/V','SUCESION']} />
                 </div>
-              </div>
+              </SectionCard>
 
               {/* SECCIÓN 4: CARACTERÍSTICAS */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <Ruler size={16} /> Superficies y Distribución
-                </h3>
+              <SectionCard title="Superficies y Distribución" icon={<Ruler size={16} />}>
                 <div className="grid grid-cols-2 gap-5 mb-5">
                     <Input label="M² Cubiertos" name="m2_construidos" type="number" value={formData.m2_construidos} onChange={handleChange} />
                     <Input label="M² Terreno" name="m2_terreno" type="number" value={formData.m2_terreno} onChange={handleChange} />
@@ -262,13 +337,10 @@ export default function Cartera() {
                     <Input label="Cocheras" name="cocheras" type="number" value={formData.cocheras} onChange={handleChange} />
                     <Select label="Disposición" name="disposicion" value={formData.disposicion} onChange={handleChange} options={['FRENTE','CONTRAFRENTE','LATERAL','INTERNO']} />
                 </div>
-              </div>
+              </SectionCard>
 
               {/* SECCIÓN 5: AMENITIES */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <Waves size={16} /> Servicios y Amenities
-                </h3>
+              <SectionCard title="Servicios y Amenities" icon={<Waves size={16} />}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                      <BooleanToggle label="Gas Natural" isYes={formData.gas_natural === 'SI'} onToggle={() => handleToggle('gas_natural')} />
                      <BooleanToggle label="Agua C." isYes={formData.agua_corriente === 'SI'} onToggle={() => handleToggle('agua_corriente')} />
@@ -285,7 +357,7 @@ export default function Cartera() {
                      <BooleanToggle label="Seguridad" isYes={formData.seguridad === 'SI'} onToggle={() => handleToggle('seguridad')} />
                      <BooleanToggle label="Internet" isYes={formData.internet === 'SI'} onToggle={() => handleToggle('internet')} />
                 </div>
-              </div>
+              </SectionCard>
 
               {/* SECCIÓN 6: ESTADO */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
@@ -330,16 +402,13 @@ export default function Cartera() {
               </div>
 
               {/* SECCIÓN 8: MULTIMEDIA */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-                  <LinkIcon size={16} /> Multimedia (Links)
-                </h3>
+              <SectionCard title="Multimedia (Links)" icon={<LinkIcon size={16} />}>
                 <div className="space-y-5">
                     <Input label="Link Google Photos" name="link_fotos" type="url" style={{textTransform:'none'}} placeholder="https://..." value={formData.link_fotos} onChange={handleChange} />
                     <Input label="Link Video Youtube" name="link_videos" type="url" style={{textTransform:'none'}} value={formData.link_videos} onChange={handleChange} />
                     <Input label="Link Documentación (Drive)" name="link_documentacion" type="url" style={{textTransform:'none'}} value={formData.link_documentacion} onChange={handleChange} />
                 </div>
-              </div>
+              </SectionCard>
 
               {/* Botón Submit */}
               <button type="submit" disabled={loading}
