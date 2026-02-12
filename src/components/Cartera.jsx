@@ -11,18 +11,9 @@ import { Toaster, toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// --- 1. COMPONENTES EXTERNOS (ESTÁTICOS) ---
+// --- 1. COMPONENTES EXTERNOS ---
 
-const SectionCard = ({ title, icon, children, className = "" }) => (
-  <div className={`bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl ${className}`}>
-    <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
-      {icon} {title}
-    </h3>
-    {children}
-  </div>
-);
-
-const Input = ({ label, name, value, onChange, type="text", placeholder, className="", ...props }) => (
+const Input = ({ label, name, value, onChange, type="text", placeholder, className="", style={}, ...props }) => (
   <div className={className}>
     <label className="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block tracking-wider">{label}</label>
     <input 
@@ -31,6 +22,7 @@ const Input = ({ label, name, value, onChange, type="text", placeholder, classNa
       placeholder={placeholder} 
       value={value} 
       onChange={onChange} 
+      style={style}
       {...props}
       className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3.5 text-sm text-slate-200 focus:border-amber-200/50 focus:outline-none transition-all uppercase placeholder:normal-case placeholder:text-slate-600" 
     />
@@ -118,56 +110,17 @@ export default function Cartera() {
 
     setLoading(true);
 
-    // --- AQUÍ ESTÁ LA SOLUCIÓN ---
-    // Creamos un objeto donde las claves (KEYS) son EXACTAMENTE las columnas del Excel.
+    // --- MAPEO DE DATOS PARA GOOGLE SHEETS ---
+    // Las claves (lado izquierdo) coinciden EXACTAMENTE con los encabezados del Excel
     const payload = {
       action: 'addCartera',
       
-      // Identificación y Estado
+      // Identificación
       'PADRON_CATASTRAL': formData.padron_catastral,
-      'TIPO_DE_INMUEBLE': formData.tipo_inmueble,
-      'ESTADO': formData.estado, // (Captado, Vendido, etc) - Columna BA
-      'ESTADO_INMUEBLE': '',     // Columna I (Estado físico general, lo dejamos vacío por ahora)
-      
-      // Detalles Físicos (Puntajes)
-      'HUMEDAD': formData.humedad,
-      'PINTURA': formData.pintura,
-      'PISOS': formData.pisos,
-      'REVOQUES': formData.revoques,
-      'FACHADA': formData.fachada,
-      
-      // Operación
-      'OPERACION': formData.operacion,
-      'PRECIO_LISTA': formData.precio_lista,
-      'PRECIO_CIERRE': formData.precio_cierre,
-      'MONEDA': formData.moneda,
-      'EXPENSAS': formData.expensas,
-      'VALOR EXPENSAS': formData.valor_expensas, // Ojo con el espacio
-      'CREDITO_HIPOTECARIO': formData.credito_hipotecario,
-      'DOCUMENTACION': formData.documentacion,
-      
-      // Superficies y Ambientes
-      'METROS_CUADRADOS_CONSTRUIDOS': formData.m2_construidos,
-      'METROS_CUADRADOS_TERRENO': formData.m2_terreno,
-      'ANTIGUEDAD': formData.antiguedad,
-      'AMBIENTES': formData.ambientes,
-      'DORMITORIOS': formData.dormitorios,
-      'COCHERAS': formData.cocheras,
-      'BAÑOS': formData.banos,
-      'DISPOSICION': formData.disposicion,
-      'AMOBLADO': formData.amoblado,
-      
-      // Amenities y Características
-      'BALCON': formData.balcon,
-      'TERRAZA': formData.terraza,
-      'PATIO_JARDIN': formData.patio_jardin,
-      'ESPACIO_VERDE': formData.espacio_verde,
-      'PISCINA': formData.piscina,
-      'QUINCHO': formData.quincho,
-      'ASADOR': formData.asador,
-      'APTO_ MASCOTAS': formData.apto_mascotas, // Ojo: espacio raro "APTO_ MASCOTAS"
-      'ASCENSOR': formData.ascensor,
-      'SEGURIDAD': formData.seguridad,
+      'TIPO_DE_INMUEBLE': formData.tipo_inmueble, // Excel: TIPO_DE_INMUEBLE
+      'ESTADO': formData.estado,
+      'AGENTE_CAPTADOR': user?.name || "Desconocido",
+      'FECHA_CAPTACION': formData.fecha_captacion,
       
       // Ubicación
       'PROVINCIA': formData.provincia,
@@ -176,48 +129,74 @@ export default function Cartera() {
       'CALLE': formData.calle,
       'NUMERO': formData.numero,
       'CODIGO_POSTAL': formData.codigo_postal,
-      'DIRECCION': `${formData.calle} ${formData.numero}, ${formData.ciudad}`, // Calculado
+      'DIRECCION': `${formData.calle} ${formData.numero}`.trim(),
       'PISO': formData.piso,
       'UNIDAD': formData.unidad,
-      'CANTIDAD_DE_PISOS': formData.cantidad_pisos,
-      'LATITUD': '',
-      'COORDENADAS': '',
+      'CANTIDAD_DE_PISOS': formData.cantidad_pisos, // Excel: CANTIDAD_DE_PISOS
       
-      // Multimedia
-      'LINK_FOTOS': formData.link_fotos,
-      'LINK_VIDEOS': formData.link_videos,
-      'LINK_PLANOS': formData.link_planos,
-      'LINK DOCUMENTACION': formData.link_documentacion, // Ojo con el espacio
+      // Operación
+      'OPERACION': formData.operacion,
+      'MONEDA': formData.moneda,
+      'PRECIO_LISTA': formData.precio_lista,
+      'PRECIO_CIERRE': formData.precio_cierre,
+      'EXPENSAS': formData.expensas,
+      'VALOR EXPENSAS': formData.valor_expensas, // Excel: VALOR EXPENSAS (Con espacio)
+      'CREDITO_HIPOTECARIO': formData.credito_hipotecario,
+      'DOCUMENTACION': formData.documentacion,
       
-      // Gestión y Agente
-      'FECHA_CAPTACION': formData.fecha_captacion,
-      'FECHA_RESERVA': '',
-      'FECHA_CIERRE': '',
-      'VISITAS_RECIBIDAS': '0',
-      'AGENTE_CAPTADOR': user?.name || 'Sistema',
-      'AGENTE_COLOCADOR': '',
+      // Superficies y Características
+      'METROS_CUADRADOS_CONSTRUIDOS': formData.m2_construidos, // Excel: METROS_CUADRADOS...
+      'METROS_CUADRADOS_TERRENO': formData.m2_terreno,
+      'ANTIGUEDAD': formData.antiguedad,
+      'AMBIENTES': formData.ambientes,
+      'DORMITORIOS': formData.dormitorios,
+      'BAÑOS': formData.banos,
+      'COCHERAS': formData.cocheras,
+      'DISPOSICION': formData.disposicion,
       
-      // Servicios
+      // Amenities
+      'BALCON': formData.balcon,
+      'TERRAZA': formData.terraza,
+      'PATIO_JARDIN': formData.patio_jardin,
+      'ESPACIO_VERDE': formData.espacio_verde,
+      'PISCINA': formData.piscina,
+      'QUINCHO': formData.quincho,
+      'ASADOR': formData.asador,
+      'AMOBLADO': formData.amoblado,
+      'APTO_ MASCOTAS': formData.apto_mascotas, // Excel: APTO_ MASCOTAS (Con espacio raro)
+      'ASCENSOR': formData.ascensor,
+      'SEGURIDAD': formData.seguridad,
+      'INTERNET': formData.internet,
       'AGUA_CORRIENTE': formData.agua_corriente,
       'LUZ': formData.luz,
       'GAS_NATURAL': formData.gas_natural,
       'CLOACAS': formData.cloacas,
-      'INTERNET': formData.internet,
+      
+      // Estado (1-10)
+      'HUMEDAD': formData.humedad,
+      'PINTURA': formData.pintura,
+      'PISOS': formData.pisos,
+      'REVOQUES': formData.revoques,
+      'FACHADA': formData.fachada,
       
       // Propietario
       'NOMBRE_PROPIETARIO': formData.nombre_propietario,
       'CELULAR_PROPIETARIO': formData.celular_propietario,
       'EMAIL_PROPIETARIO': formData.email_propietario,
-      'FIRMO EXCLUSIVIDAD': formData.firmo_exclusividad // Ojo con el espacio
+      'FIRMO EXCLUSIVIDAD': formData.firmo_exclusividad, // Excel: FIRMO EXCLUSIVIDAD (Con espacio)
+      
+      // Links
+      'LINK_FOTOS': formData.link_fotos,
+      'LINK_VIDEOS': formData.link_videos,
+      'LINK_PLANOS': formData.link_planos,
+      'LINK DOCUMENTACION': formData.link_documentacion // Excel: LINK DOCUMENTACION (Con espacio)
     };
 
     try {
-      // Usamos no-cors si es necesario, o cors normal si el script lo soporta
       await fetch(API_URL, {
         method: 'POST',
-        // NO AGREGUES 'Content-Type': 'application/json' en los headers manualmente
-        // Google Apps Script a veces lo rechaza. Envía el body como string plano pero en formato JSON.
-        body: JSON.stringify(payload)
+        // Asegúrate de enviar JSON stringify
+        body: JSON.stringify(payload) 
       });
       toast.success("¡Propiedad registrada exitosamente!");
       setTimeout(() => window.location.reload(), 1500);
@@ -259,7 +238,11 @@ export default function Cartera() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
               {/* SECCIÓN 1: GESTIÓN INTERNA */}
-              <SectionCard title="Identificación" icon={<FileText size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <FileText size={16} /> Identificación
+                </h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     {/* Agente Read-Only */}
                     <div>
@@ -277,10 +260,13 @@ export default function Cartera() {
                     <Input label="Padrón Catastral" name="padron_catastral" type="number" value={formData.padron_catastral} onChange={handleChange} required />
                     <Select label="Tipo Inmueble" name="tipo_inmueble" value={formData.tipo_inmueble} onChange={handleChange} options={['CASA','DEPARTAMENTO','TERRENO','DUPLEX','LOCAL','GALPON','OFICINA']} required />
                 </div>
-              </SectionCard>
+              </div>
 
               {/* SECCIÓN 2: UBICACIÓN */}
-              <SectionCard title="Ubicación" icon={<MapPin size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <MapPin size={16} /> Ubicación
+                </h3>
                 <div className="space-y-5">
                     <Input label="Calle" name="calle" value={formData.calle} onChange={handleChange} required />
                     <div className="grid grid-cols-2 gap-5">
@@ -297,10 +283,13 @@ export default function Cartera() {
                         <Input label="Provincia" name="provincia" value={formData.provincia} onChange={handleChange} />
                     </div>
                 </div>
-              </SectionCard>
+              </div>
 
               {/* SECCIÓN 3: VALORES */}
-              <SectionCard title="Operación y Valores" icon={<CurrencyDollar size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <CurrencyDollar size={16} /> Operación y Valores
+                </h3>
                 <div className="grid grid-cols-2 gap-5 mb-5">
                     <Select label="Operación" name="operacion" value={formData.operacion} onChange={handleChange} options={['VENTA','ALQUILER']} />
                     <Select label="Moneda" name="moneda" value={formData.moneda} onChange={handleChange} options={['DOLARES','PESOS']} />
@@ -321,10 +310,13 @@ export default function Cartera() {
                     <BooleanToggle label="Apto Crédito" isYes={formData.credito_hipotecario === 'SI'} onToggle={() => handleToggle('credito_hipotecario')} />
                     <Select label="Documentación" name="documentacion" value={formData.documentacion} onChange={handleChange} options={['ESCRITURA PERFECTA','BOLETO C/V','SUCESION']} />
                 </div>
-              </SectionCard>
+              </div>
 
               {/* SECCIÓN 4: CARACTERÍSTICAS */}
-              <SectionCard title="Superficies y Distribución" icon={<Ruler size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <Ruler size={16} /> Superficies y Distribución
+                </h3>
                 <div className="grid grid-cols-2 gap-5 mb-5">
                     <Input label="M² Cubiertos" name="m2_construidos" type="number" value={formData.m2_construidos} onChange={handleChange} />
                     <Input label="M² Terreno" name="m2_terreno" type="number" value={formData.m2_terreno} onChange={handleChange} />
@@ -339,34 +331,37 @@ export default function Cartera() {
                     <Input label="Cocheras" name="cocheras" type="number" value={formData.cocheras} onChange={handleChange} />
                     <Select label="Disposición" name="disposicion" value={formData.disposicion} onChange={handleChange} options={['FRENTE','CONTRAFRENTE','LATERAL','INTERNO']} />
                 </div>
-              </SectionCard>
+              </div>
 
               {/* SECCIÓN 5: AMENITIES */}
-              <SectionCard title="Servicios y Amenities" icon={<Waves size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <Waves size={16} /> Servicios y Amenities
+                </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     <BooleanToggle label="Gas Natural" isYes={formData.gas_natural === 'SI'} onToggle={() => handleToggle('gas_natural')} />
-                     <BooleanToggle label="Agua C." isYes={formData.agua_corriente === 'SI'} onToggle={() => handleToggle('agua_corriente')} />
-                     <BooleanToggle label="Luz" isYes={formData.luz === 'SI'} onToggle={() => handleToggle('luz')} />
-                     <BooleanToggle label="Cloacas" isYes={formData.cloacas === 'SI'} onToggle={() => handleToggle('cloacas')} />
-                     
-                     <BooleanToggle label="Balcón" isYes={formData.balcon === 'SI'} onToggle={() => handleToggle('balcon')} />
-                     <BooleanToggle label="Terraza" isYes={formData.terraza === 'SI'} onToggle={() => handleToggle('terraza')} />
-                     <BooleanToggle label="Patio" isYes={formData.patio_jardin === 'SI'} onToggle={() => handleToggle('patio_jardin')} />
-                     <BooleanToggle label="Piscina" isYes={formData.piscina === 'SI'} onToggle={() => handleToggle('piscina')} />
-                     
-                     <BooleanToggle label="Quincho" isYes={formData.quincho === 'SI'} onToggle={() => handleToggle('quincho')} />
-                     <BooleanToggle label="Asador" isYes={formData.asador === 'SI'} onToggle={() => handleToggle('asador')} />
-                     <BooleanToggle label="Seguridad" isYes={formData.seguridad === 'SI'} onToggle={() => handleToggle('seguridad')} />
-                     <BooleanToggle label="Internet" isYes={formData.internet === 'SI'} onToggle={() => handleToggle('internet')} />
+                      <BooleanToggle label="Gas Natural" isYes={formData.gas_natural === 'SI'} onToggle={() => handleToggle('gas_natural')} />
+                      <BooleanToggle label="Agua C." isYes={formData.agua_corriente === 'SI'} onToggle={() => handleToggle('agua_corriente')} />
+                      <BooleanToggle label="Luz" isYes={formData.luz === 'SI'} onToggle={() => handleToggle('luz')} />
+                      <BooleanToggle label="Cloacas" isYes={formData.cloacas === 'SI'} onToggle={() => handleToggle('cloacas')} />
+                      
+                      <BooleanToggle label="Balcón" isYes={formData.balcon === 'SI'} onToggle={() => handleToggle('balcon')} />
+                      <BooleanToggle label="Terraza" isYes={formData.terraza === 'SI'} onToggle={() => handleToggle('terraza')} />
+                      <BooleanToggle label="Patio" isYes={formData.patio_jardin === 'SI'} onToggle={() => handleToggle('patio_jardin')} />
+                      <BooleanToggle label="Piscina" isYes={formData.piscina === 'SI'} onToggle={() => handleToggle('piscina')} />
+                      
+                      <BooleanToggle label="Quincho" isYes={formData.quincho === 'SI'} onToggle={() => handleToggle('quincho')} />
+                      <BooleanToggle label="Asador" isYes={formData.asador === 'SI'} onToggle={() => handleToggle('asador')} />
+                      <BooleanToggle label="Seguridad" isYes={formData.seguridad === 'SI'} onToggle={() => handleToggle('seguridad')} />
+                      <BooleanToggle label="Internet" isYes={formData.internet === 'SI'} onToggle={() => handleToggle('internet')} />
                 </div>
-              </SectionCard>
+              </div>
 
               {/* SECCIÓN 6: ESTADO */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <Star size={16} /> Estado (1-10)
-                 </h3>
-                 <div className="grid grid-cols-5 gap-2">
+                  <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                     <Star size={16} /> Estado (1-10)
+                  </h3>
+                  <div className="grid grid-cols-5 gap-2">
                     {['humedad', 'pintura', 'pisos', 'revoques', 'fachada'].map(field => (
                         <div key={field} className="bg-slate-950/30 p-2 rounded-xl border border-white/5 text-center">
                             <label className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase block mb-1 truncate">{field}</label>
@@ -381,16 +376,16 @@ export default function Cartera() {
                             />
                         </div>
                     ))}
-                 </div>
+                  </div>
               </div>
 
               {/* SECCIÓN 7: PROPIETARIO */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-600"></div>
-                 <h3 className="text-xs font-bold text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-600"></div>
+                  <h3 className="text-xs font-bold text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     <User size={16} className="text-amber-500"/> Datos Propietario (Privado)
-                 </h3>
-                 <div className="space-y-5">
+                  </h3>
+                  <div className="space-y-5">
                     <Input label="Nombre Completo" name="nombre_propietario" value={formData.nombre_propietario} onChange={handleChange} />
                     <div className="grid grid-cols-2 gap-5">
                         <Input label="Celular" name="celular_propietario" type="tel" value={formData.celular_propietario} onChange={handleChange} />
@@ -400,17 +395,20 @@ export default function Cartera() {
                         <Input label="Fecha Captación" name="fecha_captacion" type="date" value={formData.fecha_captacion} onChange={handleChange} />
                         <BooleanToggle label="¿Exclusividad?" isYes={formData.firmo_exclusividad === 'SI'} onToggle={() => handleToggle('firmo_exclusividad')} />
                     </div>
-                 </div>
+                  </div>
               </div>
 
               {/* SECCIÓN 8: MULTIMEDIA */}
-              <SectionCard title="Multimedia (Links)" icon={<LinkIcon size={16} />}>
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <LinkIcon size={16} /> Multimedia (Links)
+                </h3>
                 <div className="space-y-5">
                     <Input label="Link Google Photos" name="link_fotos" type="url" style={{textTransform:'none'}} placeholder="https://..." value={formData.link_fotos} onChange={handleChange} />
                     <Input label="Link Video Youtube" name="link_videos" type="url" style={{textTransform:'none'}} value={formData.link_videos} onChange={handleChange} />
                     <Input label="Link Documentación (Drive)" name="link_documentacion" type="url" style={{textTransform:'none'}} value={formData.link_documentacion} onChange={handleChange} />
                 </div>
-              </SectionCard>
+              </div>
 
               {/* Botón Submit */}
               <button type="submit" disabled={loading}
