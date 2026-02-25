@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { 
-  Kanban, SpinnerGap, MagnifyingGlass, CalendarBlank, 
-  WarningCircle, CalendarCheck, X, WhatsappLogo, 
+import {
+  Kanban, SpinnerGap, MagnifyingGlass, CalendarBlank,
+  WarningCircle, CalendarCheck, X, WhatsappLogo,
   FloppyDisk, Plus, ArrowsClockwise, CaretRight,
   UserPlus, Buildings, MagnifyingGlass as SearchIcon
 } from 'phosphor-react';
@@ -37,7 +37,6 @@ export default function CRM() {
   const [tempDate, setTempDate] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Función de carga con ruteo por usuarioRequested
   const fetchClients = useCallback(async (isManual = false) => {
     if (!user?.name) return;
 
@@ -79,7 +78,7 @@ export default function CRM() {
     const clientToMove = clients.find(c => c.id === draggedItemId);
     if (!clientToMove || clientToMove.etapa === newStage) return;
 
-    const updatedClients = clients.map(c => 
+    const updatedClients = clients.map(c =>
       c.id === draggedItemId ? { ...c, etapa: newStage } : c
     );
     setClients(updatedClients);
@@ -99,37 +98,30 @@ export default function CRM() {
     }
 
     setSaving(true);
+    let updatedNotes = selectedClient.notas || '';
+    if (tempNote.trim()) {
+      updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
+    }
+
+    const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
+
     try {
-      const response = await fetch(`${API_URL}?action=updateClient`, {
+      await fetch(`${API_URL}?action=updateClient`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          id: selectedClient.id,
-          etapa: selectedClient.etapa, // Enviamos la etapa que se cambió en el drag & drop
+          id: finalClient.id,
+          etapa: finalClient.etapa,
           agenda: tempDate,
           nota: tempNote
         })
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Si el server confirmó, actualizamos el store global
-        const updatedNotes = tempNote.trim() 
-          ? `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${selectedClient.notas || ''}`
-          : selectedClient.notas;
-
-        const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
-        setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
-        
-        toast.success('Cambios guardados en Google Sheets');
-        setSelectedClient(null);
-      } else {
-        throw new Error(result.error);
-      }
+      
+      setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
+      toast.success('Gestión actualizada');
+      setSelectedClient(null);
     } catch (error) {
-      console.error("Error al guardar:", error);
-      toast.error('Error de conexión: No se pudo actualizar el Excel');
+      toast.error('Error al guardar cambios');
     } finally {
       setSaving(false);
     }
@@ -148,7 +140,7 @@ export default function CRM() {
 
   const filteredClients = clients.filter(c => {
     const matchesCat = c.cat === currentCat;
-    const matchesSearch = c.nom?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = c.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           c.prop?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCat && matchesSearch;
   });
@@ -163,7 +155,7 @@ export default function CRM() {
   }
 
   const AgendaCard = ({ client }) => (
-    <div 
+    <div
       onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
       className="bg-slate-900/60 border border-white/5 p-4 rounded-xl hover:border-amber-200/30 transition-all cursor-pointer group"
     >
@@ -225,9 +217,9 @@ export default function CRM() {
             {STAGES.map(stage => {
               const columnClients = filteredClients.filter(c => (c.etapa || 'INGRESO') === stage.id);
               return (
-                <div key={stage.id} 
+                <div key={stage.id}
                      className="min-w-[280px] w-[280px] bg-slate-900/40 rounded-3xl border border-white/5 flex flex-col h-full"
-                     onDragOver={(e) => e.preventDefault()} 
+                     onDragOver={(e) => e.preventDefault()}
                      onDrop={(e) => handleDrop(e, stage.id)}>
                   <div className="p-4 border-b border-white/5 flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -238,7 +230,7 @@ export default function CRM() {
                   </div>
                   <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scroll">
                     {columnClients.map(client => (
-                      <motion.div 
+                      <motion.div
                         key={client.id} layoutId={client.id}
                         draggable onDragStart={(e) => setDraggedItemId(client.id)}
                         onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
