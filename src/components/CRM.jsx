@@ -99,30 +99,37 @@ export default function CRM() {
     }
 
     setSaving(true);
-    let updatedNotes = selectedClient.notas || '';
-    if (tempNote.trim()) {
-      updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
-    }
-
-    const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
-
     try {
-      await fetch(`${API_URL}?action=updateClient`, {
+      const response = await fetch(`${API_URL}?action=updateClient`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          id: finalClient.id,
-          etapa: finalClient.etapa,
+          id: selectedClient.id,
+          etapa: selectedClient.etapa, // Enviamos la etapa que se cambió en el drag & drop
           agenda: tempDate,
           nota: tempNote
         })
       });
-      
-      setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
-      toast.success('Gestión actualizada');
-      setSelectedClient(null);
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Si el server confirmó, actualizamos el store global
+        const updatedNotes = tempNote.trim() 
+          ? `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${selectedClient.notas || ''}`
+          : selectedClient.notas;
+
+        const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
+        setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
+        
+        toast.success('Cambios guardados en Google Sheets');
+        setSelectedClient(null);
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
-      toast.error('Error al guardar cambios');
+      console.error("Error al guardar:", error);
+      toast.error('Error de conexión: No se pudo actualizar el Excel');
     } finally {
       setSaving(false);
     }
