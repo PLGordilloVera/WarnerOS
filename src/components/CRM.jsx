@@ -98,30 +98,46 @@ export default function CRM() {
     }
 
     setSaving(true);
-    let updatedNotes = selectedClient.notas || '';
-    if (tempNote.trim()) {
-      updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
-    }
 
-    const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
+    // Construimos el objeto exacto que espera handleUpdateClient en el backend
+    const payload = {
+      action: 'updateClient', // Acción dentro del body para consistencia
+      id: selectedClient.id,   // El ID debe ser "TIPO||TIMESTAMP"
+      etapa: selectedClient.etapa,
+      agenda: tempDate,        // Formato YYYY-MM-DD
+      nota: tempNote.trim()    // Enviamos solo el texto; el backend pone la fecha
+    };
 
     try {
-      await fetch(`${API_URL}?action=updateClient`, {
+      // IMPORTANTE: Eliminamos el query param de la URL para usar solo el body
+      const response = await fetch(API_URL, {
         method: 'POST',
+        mode: 'cors', 
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          id: finalClient.id,
-          etapa: finalClient.etapa,
-          agenda: tempDate,
-          nota: tempNote
-        })
+        body: JSON.stringify(payload)
       });
-      
-      setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
-      toast.success('Gestión actualizada');
-      setSelectedClient(null);
+
+      const res = await response.json();
+
+      if (res.success) {
+        // Para actualizar el estado local (UI), sí procesamos la nota aquí 
+        // para que el usuario la vea sin necesidad de recargar de la base de datos
+        let updatedNotes = selectedClient.notas || '';
+        if (tempNote.trim()) {
+          updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
+        }
+
+        const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
+        
+        setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
+        toast.success('Gestión guardada en la nube');
+        setSelectedClient(null);
+      } else {
+        toast.error('Error del servidor: ' + res.error);
+      }
     } catch (error) {
-      toast.error('Error al guardar cambios');
+      console.error("Error en CRM Update:", error);
+      toast.error('Error de conexión con Warner Server');
     } finally {
       setSaving(false);
     }
