@@ -485,13 +485,7 @@ export default function CRM() {
     } finally { setSaving(false); }
   };
 
-  // ─── LOADING ─────────────────────────────────────────────────────────────────
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
-      <SpinnerGap size={36} className="animate-spin text-amber-300" />
-      <span className="text-[11px] font-black text-slate-500 tracking-[0.25em] uppercase">Cargando cartera...</span>
-    </div>
-  );
+
 
   const cats = ['COMPRADOR', 'INQUILINO', 'VENDEDOR', 'PROPIETARIO'];
 
@@ -501,6 +495,14 @@ export default function CRM() {
       acc[cat] = clients.filter(c => c.cat === cat).length;
       return acc;
     }, {}), [clients]);
+
+      // ─── LOADING ─────────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-full gap-4">
+      <SpinnerGap size={36} className="animate-spin text-amber-300" />
+      <span className="text-[11px] font-black text-slate-500 tracking-[0.25em] uppercase">Cargando cartera...</span>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full bg-[#080e1a] p-3 md:p-5 rounded-2xl md:rounded-3xl border border-white/[0.07]
