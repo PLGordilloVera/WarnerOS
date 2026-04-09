@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
-import { 
-  Kanban, SpinnerGap, MagnifyingGlass, CalendarBlank, 
-  WarningCircle, CalendarCheck, X, WhatsappLogo, 
+import {
+  Kanban, SpinnerGap, MagnifyingGlass, CalendarBlank,
+  WarningCircle, CalendarCheck, X, WhatsappLogo,
   FloppyDisk, Plus, ArrowsClockwise, CaretRight,
   UserPlus, Buildings, MagnifyingGlass as SearchIcon
 } from 'phosphor-react';
@@ -37,7 +37,6 @@ export default function CRM() {
   const [tempDate, setTempDate] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Función de carga con ruteo por usuarioRequested
   const fetchClients = useCallback(async (isManual = false) => {
     if (!user?.name) return;
 
@@ -79,7 +78,7 @@ export default function CRM() {
     const clientToMove = clients.find(c => c.id === draggedItemId);
     if (!clientToMove || clientToMove.etapa === newStage) return;
 
-    const updatedClients = clients.map(c => 
+    const updatedClients = clients.map(c =>
       c.id === draggedItemId ? { ...c, etapa: newStage } : c
     );
     setClients(updatedClients);
@@ -99,37 +98,46 @@ export default function CRM() {
     }
 
     setSaving(true);
+
+    // Construimos el objeto exacto que espera handleUpdateClient en el backend
+    const payload = {
+      action: 'updateClient', // Acción dentro del body para consistencia
+      id: selectedClient.id,   // El ID debe ser "TIPO||TIMESTAMP"
+      etapa: selectedClient.etapa,
+      agenda: tempDate,        // Formato YYYY-MM-DD
+      nota: tempNote.trim()    // Enviamos solo el texto; el backend pone la fecha
+    };
+
     try {
-      const response = await fetch(`${API_URL}?action=updateClient`, {
+      // IMPORTANTE: Eliminamos el query param de la URL para usar solo el body
+      const response = await fetch(API_URL, {
         method: 'POST',
+        mode: 'cors', 
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          id: selectedClient.id,
-          etapa: selectedClient.etapa, // Enviamos la etapa que se cambió en el drag & drop
-          agenda: tempDate,
-          nota: tempNote
-        })
+        body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
+      const res = await response.json();
 
-      if (result.success) {
-        // Si el server confirmó, actualizamos el store global
-        const updatedNotes = tempNote.trim() 
-          ? `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${selectedClient.notas || ''}`
-          : selectedClient.notas;
+      if (res.success) {
+        // Para actualizar el estado local (UI), sí procesamos la nota aquí 
+        // para que el usuario la vea sin necesidad de recargar de la base de datos
+        let updatedNotes = selectedClient.notas || '';
+        if (tempNote.trim()) {
+          updatedNotes = `[${new Date().toLocaleDateString('es-AR')}] ${tempNote}\n${updatedNotes}`;
+        }
 
         const finalClient = { ...selectedClient, agenda: tempDate, notas: updatedNotes };
-        setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
         
-        toast.success('Cambios guardados en Google Sheets');
+        setClients(clients.map(c => c.id === finalClient.id ? finalClient : c));
+        toast.success('Gestión guardada en la nube');
         setSelectedClient(null);
       } else {
-        throw new Error(result.error);
+        toast.error('Error del servidor: ' + res.error);
       }
     } catch (error) {
-      console.error("Error al guardar:", error);
-      toast.error('Error de conexión: No se pudo actualizar el Excel');
+      console.error("Error en CRM Update:", error);
+      toast.error('Error de conexión con Warner Server');
     } finally {
       setSaving(false);
     }
@@ -148,7 +156,7 @@ export default function CRM() {
 
   const filteredClients = clients.filter(c => {
     const matchesCat = c.cat === currentCat;
-    const matchesSearch = c.nom?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = c.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           c.prop?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCat && matchesSearch;
   });
@@ -163,7 +171,7 @@ export default function CRM() {
   }
 
   const AgendaCard = ({ client }) => (
-    <div 
+    <div
       onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
       className="bg-slate-900/60 border border-white/5 p-4 rounded-xl hover:border-amber-200/30 transition-all cursor-pointer group"
     >
@@ -225,9 +233,9 @@ export default function CRM() {
             {STAGES.map(stage => {
               const columnClients = filteredClients.filter(c => (c.etapa || 'INGRESO') === stage.id);
               return (
-                <div key={stage.id} 
+                <div key={stage.id}
                      className="min-w-[280px] w-[280px] bg-slate-900/40 rounded-3xl border border-white/5 flex flex-col h-full"
-                     onDragOver={(e) => e.preventDefault()} 
+                     onDragOver={(e) => e.preventDefault()}
                      onDrop={(e) => handleDrop(e, stage.id)}>
                   <div className="p-4 border-b border-white/5 flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -238,7 +246,7 @@ export default function CRM() {
                   </div>
                   <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scroll">
                     {columnClients.map(client => (
-                      <motion.div 
+                      <motion.div
                         key={client.id} layoutId={client.id}
                         draggable onDragStart={(e) => setDraggedItemId(client.id)}
                         onClick={() => { setSelectedClient(client); setTempDate(client.agenda ? client.agenda.split('T')[0] : ''); setTempNote(''); }}
