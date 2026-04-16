@@ -55,6 +55,7 @@ export default function Dashboard() {
   const location = useLocation();
 
   const [activeView, setActiveView] = useState(location.state?.view || 'CRM');
+  const [selectedBBDD, setSelectedBBDD] = useState(null);
   
   const [greeting, setGreeting] = useState('');
   const [greetingIcon, setGreetingIcon] = useState(null);
@@ -132,15 +133,29 @@ export default function Dashboard() {
       </>
     );
 
-    return isExternal ? (
-      <motion.a 
-        href={url} target="_blank" rel="noreferrer"
+    const handleAction = () => {
+      if (activeView === 'BBDD' && isExternal) {
+        // En vista BBDD, abrimos en el iframe interno
+        setSelectedBBDD(link);
+        return;
+      }
+      if (isExternal) {
+        window.open(url, '_blank');
+      } else {
+        navigate(url);
+      }
+    };
+
+    return (
+      <motion.div 
+        onClick={handleAction}
         whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
         className={cardClasses}
       >
         <CardContent />
-      </motion.a>
-    ) : (
+      </motion.div>
+    );
+  };
       <motion.div 
         onClick={() => navigate(url)}
         whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
@@ -284,18 +299,36 @@ export default function Dashboard() {
           )}
 
           {activeView === 'BBDD' && (
-             <motion.div key="BBDD" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto overflow-y-auto custom-scroll pb-20 px-1 md:px-4">
-                <header className="mb-6 md:mb-8 mt-2 md:mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+             <motion.div key="BBDD" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto flex flex-col overflow-hidden pb-20 px-1 md:px-4">
+                <header className="mb-6 md:mb-8 mt-2 md:mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
                     <div>
-                        <button onClick={() => setActiveView('HUB')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-amber-200 mb-2 md:mb-4 transition-colors flex items-center gap-2">
+                        <button onClick={() => selectedBBDD ? setSelectedBBDD(null) : setActiveView('HUB')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-amber-200 mb-2 md:mb-4 transition-colors flex items-center gap-2">
                             <CaretRight size={12} weight="bold" className="rotate-180" /> Volver
                         </button>
-                        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">Bases de <span className="text-amber-200">Datos</span></h2>
+                        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">
+                            {selectedBBDD ? <>Visualizando <span className="text-amber-200">{selectedBBDD.label}</span></> : <>Bases de <span className="text-amber-200">Datos</span></>}
+                        </h2>
                     </div>
+                    {selectedBBDD && (
+                      <a href={selectedBBDD.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[10px] font-black text-amber-200 hover:text-white transition-colors">
+                        <ArrowUpRight size={14} /> ABRIR EN PESTAÑA APARTE
+                      </a>
+                    )}
                 </header>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5">
-                    {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} />)}
-                </div>
+                
+                {selectedBBDD ? (
+                  <div className="flex-1 bg-slate-900/40 rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
+                    <iframe 
+                      src={selectedBBDD.url.replace('/edit', '/preview')} 
+                      className="w-full h-full border-0 bg-white"
+                      title={selectedBBDD.label}
+                    ></iframe>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5 overflow-y-auto custom-scroll pr-2">
+                      {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} />)}
+                  </div>
+                )}
              </motion.div>
           )}
 

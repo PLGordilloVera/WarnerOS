@@ -78,15 +78,15 @@ export default function Procedimientos({ setActiveView }) {
                   <DownloadSimple size={20} />
                 </a>
              </div>
-             <div className="flex-1 bg-slate-950/50 relative">
+              <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="/procedimientos/captacion/POE_Captacion.pdf#toolbar=0" 
+                  src="procedimientos/captacion/POE_Captacion.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Captación"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="/procedimientos/captacion/POE_Captacion.pdf" 
+                    href="procedimientos/captacion/POE_Captacion.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
@@ -168,15 +168,15 @@ export default function Procedimientos({ setActiveView }) {
                   <DownloadSimple size={20} />
                 </a>
              </div>
-             <div className="flex-1 bg-slate-950/50 relative">
+              <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="/procedimientos/visitas/POE_Visitas.pdf#toolbar=0" 
+                  src="procedimientos/visitas/POE_Visitas.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Visitas"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="/procedimientos/visitas/POE_Visitas.pdf" 
+                    href="procedimientos/visitas/POE_Visitas.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
@@ -258,15 +258,15 @@ export default function Procedimientos({ setActiveView }) {
                   <DownloadSimple size={20} />
                 </a>
              </div>
-             <div className="flex-1 bg-slate-950/50 relative">
+              <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="/procedimientos/reservas/POE_Reservas.pdf#toolbar=0" 
+                  src="procedimientos/reservas/POE_Reservas.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Reservas"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="/procedimientos/reservas/POE_Reservas.pdf" 
+                    href="procedimientos/reservas/POE_Reservas.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
