@@ -156,15 +156,6 @@ export default function Dashboard() {
       </motion.div>
     );
   };
-      <motion.div 
-        onClick={() => navigate(url)}
-        whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
-        className={cardClasses}
-      >
-        <CardContent />
-      </motion.div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-[100dvh] bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-amber-200 selection:text-slate-900 relative">
