@@ -4,6 +4,7 @@ import {
   CaretRight, House, CalendarCheck, LockKey, ClipboardText, 
   ArrowUpRight, FilePdf, PlayCircle, X, DownloadSimple, CornersOut, User
 } from 'phosphor-react';
+import CaptacionGenerator from './CaptacionGenerator';
 
 export default function Procedimientos({ setActiveView }) {
   const [selectedSubSection, setSelectedSubSection] = useState(null);
@@ -42,6 +43,8 @@ export default function Procedimientos({ setActiveView }) {
   };
 
   const CaptacionDetail = () => {
+    const [showGenerator, setShowGenerator] = useState(false);
+
     return (
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
@@ -54,13 +57,48 @@ export default function Procedimientos({ setActiveView }) {
             <h2 className="text-3xl md:text-4xl font-black text-white mb-2 uppercase">Protocolo de <span className="text-amber-200">Captación</span></h2>
             <p className="text-slate-400 text-sm">POE, Vídeo de entrenamiento y material de soporte.</p>
           </div>
-          <button 
-            onClick={() => setSelectedSubSection(null)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-800/60 border border-white/10 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"
-          >
-            <X size={16} weight="bold" /> Cerrar Detalle
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowGenerator(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 text-slate-900 text-xs font-bold hover:bg-amber-300 transition-all active:scale-95 shadow-[0_0_15px_rgba(251,191,36,0.3)]"
+            >
+              <ClipboardText size={16} weight="bold" /> Generar Exclusividad
+            </button>
+            <button 
+              onClick={() => setSelectedSubSection(null)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-800/60 border border-white/10 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"
+            >
+              <X size={16} weight="bold" /> Cerrar Detalle
+            </button>
+          </div>
         </div>
+
+        {/* Modal Generador Automático de Documentos */}
+        <AnimatePresence>
+          {showGenerator && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-slate-950/80 backdrop-blur-sm print:static print:bg-transparent print:p-0 print:block"
+            >
+              <motion.div 
+                initial={{ scale: 0.95, y: 20 }} 
+                animate={{ scale: 1, y: 0 }} 
+                exit={{ scale: 0.95, y: 20 }}
+                className="relative w-full max-w-3xl max-h-full overflow-y-auto custom-scroll print:overflow-visible print:max-h-none print:max-w-none"
+              >
+                <button 
+                  onClick={() => setShowGenerator(false)}
+                  className="absolute top-4 right-4 z-50 p-2 bg-slate-800/80 text-slate-400 hover:text-white rounded-full transition-colors print:hidden"
+                >
+                  <X size={20} weight="bold" />
+                </button>
+                <CaptacionGenerator />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col h-[600px] shadow-2xl group">
