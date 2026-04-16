@@ -62,6 +62,7 @@ export default function Login() {
       const data = await response.json();
 
       if (data.auth) {
+        // ACTUALIZACIÓN FASE 1: Pasamos el token al store
         login({ 
             name: data.name, 
             email: data.email, 
@@ -71,7 +72,7 @@ export default function Login() {
             departamento: data.departamento,
             fechaIngreso: data.fechaIngreso,
             avatar: data.avatar || (data.name ? data.name.charAt(0) : 'W')
-        });
+        }, data.token);
         navigate('/', { replace: true });
       } else {
         throw new Error(data.message || 'Credenciales inválidas');

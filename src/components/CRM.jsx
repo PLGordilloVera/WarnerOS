@@ -8,7 +8,7 @@ import {
   UserPlus, Buildings, Phone, EnvelopeSimple,
   MapPin, CurrencyDollar, House, Tag, Clock,
   SortAscending, Funnel, ChartBar, CheckCircle,
-  ArrowRight, Dot, Circle, Timer
+  ArrowRight, Circle, Timer
 } from 'phosphor-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
@@ -388,7 +388,7 @@ const StatsBar = ({ clients }) => {
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export default function CRM() {
   const navigate = useNavigate();
-  const { clients, setClients, user } = useAppStore();
+  const { token, userEmail, clients, setClients, user } = useAppStore();
 
   const [loading, setLoading]           = useState(true);
   const [refreshing, setRefreshing]     = useState(false);
@@ -407,14 +407,14 @@ export default function CRM() {
     if (!user?.name) return;
     if (isManual) setRefreshing(true); else setLoading(true);
     try {
-      const url = `${API_URL}?action=getData&userRequested=${encodeURIComponent(user.name)}`;
+      const url = `${API_URL}?action=getData&userRequested=${encodeURIComponent(user.name)}&token=${encodeURIComponent(token)}&userEmail=${encodeURIComponent(userEmail)}`;
       const data = await fetch(url).then(r => r.json());
       setClients(data);
       if (isManual) toast.success('Base de datos sincronizada');
     } catch {
       toast.error('Error al sincronizar');
     } finally { setLoading(false); setRefreshing(false); }
-  }, [user?.name, setClients]);
+  }, [user?.name, setClients, token, userEmail]);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 
@@ -464,7 +464,7 @@ export default function CRM() {
       const res = await fetch(`${API_URL}?action=updateClient`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ id: selectedClient.id, etapa: tempEtapa, agenda: tempDate, nota: tempNote }),
+        body: JSON.stringify({ id: selectedClient.id, etapa: tempEtapa, agenda: tempDate, nota: tempNote, token, userEmail }),
       });
       const result = await res.json();
       if (!result.success) throw new Error(result.error);

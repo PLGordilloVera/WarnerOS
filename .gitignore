@@ -28,3 +28,6 @@ node_modules
 .env
 dist
 .DS_Store
+
+# Google Apps Script Backend (Local Only)
+Backend_GoogleAppScript/

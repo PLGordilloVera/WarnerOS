@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Importamos useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   SignOut, Kanban, ClipboardText, BookOpen, Database, ChartLineUp, MapTrifold, 
-  House, Signpost, UserPlus, UserMinus, HouseLine, // Iconos necesarios
+  House, Signpost, UserPlus, UserMinus, HouseLine,
   IdentificationCard, Megaphone, LockKey, Star, Calculator, CalendarCheck, 
   Users, Presentation, CaretRight, Sparkle, SunHorizon, Moon, CloudSun, ArrowUpRight, Buildings
 } from 'phosphor-react';
 import CRM from '../components/CRM';
 import Rendimiento from '../components/Rendimiento';
+import Procedimientos from '../components/Procedimientos'; 
 
 // --- DATOS Y LISTAS ---
 const TOOLS = [
@@ -20,7 +21,6 @@ const TOOLS = [
 ];
 
 const LINKS_FORMULARIOS = [
-  // 👇 CAMBIO CLAVE: Ruta interna para Cartera Inmuebles
   { label: 'Cartera Inmuebles', icon: <House size={20} />, url: '/cartera' }, 
   { label: 'Carteles', icon: <Signpost size={20} />, url: '/carteles' },
   { label: 'Comprador', icon: <UserPlus size={20} />, url: '/compradores' },
@@ -52,9 +52,8 @@ const WarnerLogoSmall = () => {
 export default function Dashboard() {
   const { user, logout } = useAppStore();
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para leer el estado de la navegación
+  const location = useLocation();
 
-  // Inicializar activeView con el estado pasado por navegación o 'CRM' por defecto
   const [activeView, setActiveView] = useState(location.state?.view || 'CRM');
   
   const [greeting, setGreeting] = useState('');
@@ -74,16 +73,11 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Efecto para actualizar la vista si cambia el estado de navegación (ej. al volver de un formulario)
   useEffect(() => {
     if (location.state?.view) {
       setActiveView(location.state.view);
-      // Opcional: Limpiar el estado para evitar que al recargar se quede pegado, 
-      // aunque en este caso es útil que persista si recarga.
-      // window.history.replaceState({}, document.title); 
     }
   }, [location.state]);
-
 
   const handleLogout = () => {
     logout();
@@ -117,7 +111,8 @@ export default function Dashboard() {
   };
 
   const ActionCard = ({ link }) => {
-    const isExternal = link.url.startsWith('http');
+    const url = link?.url || '#';
+    const isExternal = url.startsWith('http');
     const cardClasses = "group relative flex flex-col justify-between h-32 md:h-36 p-5 md:p-6 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:border-amber-200/40 transition-all duration-300 cursor-pointer";
 
     const CardContent = () => (
@@ -125,21 +120,21 @@ export default function Dashboard() {
         <div className="absolute inset-0 bg-gradient-to-br from-amber-200/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
         <div className="flex justify-between items-start z-10">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-amber-200 shadow-inner group-hover:bg-amber-900/20 transition-all duration-300">
-            {link.icon}
+            {link?.icon}
           </div>
           <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-amber-200 text-slate-500 group-hover:text-slate-900 transition-colors">
             <ArrowUpRight size={14} weight="bold" className={isExternal ? "" : "rotate-45"} /> 
           </div>
         </div>
         <span className="font-bold text-slate-200 text-xs md:text-sm tracking-wide z-10 group-hover:text-amber-100 transition-colors line-clamp-2">
-          {link.label}
+          {link?.label}
         </span>
       </>
     );
 
     return isExternal ? (
       <motion.a 
-        href={link.url} target="_blank" rel="noreferrer"
+        href={url} target="_blank" rel="noreferrer"
         whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
         className={cardClasses}
       >
@@ -147,7 +142,7 @@ export default function Dashboard() {
       </motion.a>
     ) : (
       <motion.div 
-        onClick={() => navigate(link.url)}
+        onClick={() => navigate(url)}
         whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
         className={cardClasses}
       >
@@ -314,25 +309,9 @@ export default function Dashboard() {
           )}
 
           {activeView === 'PROCEDIMIENTOS' && (
-             <motion.div key="PROCEDIMIENTOS" initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="h-full w-full mx-auto flex flex-col items-center justify-center pb-10 relative px-4">
-                 <button onClick={() => setActiveView('HUB')} className="absolute top-0 left-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-amber-200 mb-2 transition-colors flex items-center gap-2">
-                    <CaretRight size={12} weight="bold" className="rotate-180" /> Volver
-                </button>
-                <motion.a 
-                  href="https://prezi.com/view/FIdlkdnOFVq5kLpcubLt/?referral_token=1NtU1RlnB3FN" target="_blank" rel="noreferrer" 
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="group flex flex-col md:flex-row items-center p-6 md:p-10 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[2rem] hover:border-amber-200/50 transition-all duration-300 shadow-2xl max-w-2xl w-full text-center md:text-left"
-                >
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-white md:mr-8 mb-4 md:mb-0 shadow-[0_10px_30px_rgba(220,38,38,0.4)] group-hover:scale-110 transition-transform">
-                    <Presentation size={32} md:size={48} weight="fill" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-2 block">Presentación Interactiva</span>
-                    <h3 className="font-black text-white text-2xl md:text-3xl mb-2 group-hover:text-amber-200 transition-colors">Valuación y Captación</h3>
-                    <p className="text-sm md:text-base text-slate-400 font-light">Guion comercial y flujo de trabajo certificado.</p>
-                  </div>
-                </motion.a>
-             </motion.div>
+            <motion.div key="PROCEDIMIENTOS" initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="h-full w-full mx-auto relative px-4">
+              <Procedimientos setActiveView={setActiveView} />
+            </motion.div>
           )}
 
         </AnimatePresence>

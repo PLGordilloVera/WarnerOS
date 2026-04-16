@@ -6,33 +6,37 @@ import { create } from 'zustand';
  */
 export const useAppStore = create((set) => ({
   // --- Estado Global ---
-  // Intentamos recuperar del almacenamiento local para que no te saque al dar F5
   user: JSON.parse(localStorage.getItem('warner_user')) || null,
+  token: localStorage.getItem('warner_token') || null,
   
-  // ¡ESTA ES LA CLAVE! Verificamos si hay usuario guardado para poner esto en TRUE
-  isAuthenticated: !!localStorage.getItem('warner_user'),
+  // Verificamos si hay token guardado para permitir el acceso
+  isAuthenticated: !!localStorage.getItem('warner_token'),
   
   clients: [], // Caché local de la base de datos de clientes
 
   // --- Mutadores de Estado (Acciones) ---
   
   // Establece la sesión activa del usuario
-  login: (userData) => {
+  login: (userData, token) => {
     // 1. Guardamos en el navegador para persistencia
     localStorage.setItem('warner_user', JSON.stringify(userData));
+    localStorage.setItem('warner_token', token);
     
-    // 2. Actualizamos el estado (Tu código original)
+    // 2. Actualizamos el estado
     set({ 
       user: userData, 
-      isAuthenticated: true // <--- ESTO ES LO QUE HACE QUE EL ROUTER TE DEJE PASAR
+      token: token,
+      isAuthenticated: true 
     });
   },
 
   // Purga los datos de sesión y restringe el acceso
   logout: () => {
     localStorage.removeItem('warner_user');
+    localStorage.removeItem('warner_token');
     set({ 
       user: null, 
+      token: null,
       isAuthenticated: false, 
       clients: [] 
     });
