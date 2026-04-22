@@ -43,11 +43,14 @@ export default function Rendimiento() {
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, chatOpen]);
 
+  const { token, userEmail } = useAppStore();
+
   // CARGA Y NORMALIZACIÓN INICIAL
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}?action=getDashboard`, { method: 'GET', redirect: 'follow' });
+        const url = `${API_URL}?action=getDashboard&token=${encodeURIComponent(token)}&userEmail=${encodeURIComponent(userEmail)}`;
+        const response = await fetch(url, { method: 'GET', redirect: 'follow' });
         const json = await response.json();
         
         if(json.error) throw new Error(json.error);

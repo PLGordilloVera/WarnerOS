@@ -49,112 +49,100 @@ const WarnerLogoSmall = () => {
   return <img src="/logo.png" alt="Warner" className="w-10 h-10 md:w-12 md:h-12 object-contain" onError={() => setImgError(true)} />;
 };
 
+const NavItem = ({ view, icon, label, mobile = false, activeView, setActiveView }) => {
+  const isActive = activeView === view;
+  const baseClasses = mobile 
+    ? "relative flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 w-full"
+    : "relative flex items-center gap-3 px-6 py-3 rounded-full text-base font-bold transition-all duration-300 whitespace-nowrap";
+  
+  const activeText = isActive ? 'text-slate-900' : 'text-slate-400 hover:text-amber-200';
+  const mobileActiveText = isActive ? 'text-amber-200' : 'text-slate-500';
+
+  return (
+    <button 
+      onClick={() => setActiveView(view)} 
+      className={`${baseClasses} ${mobile ? mobileActiveText : activeText}`}
+    >
+      {isActive && !mobile && (
+        <motion.div layoutId="capsule" className="absolute inset-0 bg-gradient-to-r from-amber-200 to-amber-100 rounded-full shadow-[0_0_20px_rgba(253,230,138,0.4)]" />
+      )}
+      {isActive && mobile && (
+         <motion.div layoutId="mobile-glow" className="absolute -top-1 w-8 h-1 bg-amber-200 rounded-full shadow-[0_0_10px_rgba(253,230,138,0.8)]" />
+      )}
+      <span className="relative z-10">{icon}</span>
+      <span className={`relative z-10 ${mobile ? 'text-[10px] mt-1 font-medium' : ''}`}>{label}</span>
+    </button>
+  );
+};
+
+const ActionCard = ({ link, activeView, setSelectedBBDD, navigate }) => {
+  const url = link?.url || '#';
+  const isExternal = url.startsWith('http');
+  const cardClasses = "group relative flex flex-col justify-between h-32 md:h-36 p-5 md:p-6 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:border-amber-200/40 transition-all duration-300 cursor-pointer";
+
+  const handleAction = () => {
+    if (activeView === 'BBDD' && isExternal) {
+      // En vista BBDD, abrimos en el iframe interno
+      setSelectedBBDD(link);
+      return;
+    }
+    if (isExternal) {
+      window.open(url, '_blank');
+    } else {
+      navigate(url);
+    }
+  };
+
+  return (
+    <motion.div 
+      onClick={handleAction}
+      whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
+      className={cardClasses}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-200/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+      <div className="flex justify-between items-start z-10">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-amber-200 shadow-inner group-hover:bg-amber-900/20 transition-all duration-300">
+          {link?.icon}
+        </div>
+        <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-amber-200 text-slate-500 group-hover:text-slate-900 transition-colors">
+          <ArrowUpRight size={14} weight="bold" className={isExternal ? "" : "rotate-45"} /> 
+        </div>
+      </div>
+      <span className="font-bold text-slate-200 text-xs md:text-sm tracking-wide z-10 group-hover:text-amber-100 transition-colors line-clamp-2">
+        {link?.label}
+      </span>
+    </motion.div>
+  );
+};
+
 export default function Dashboard() {
   const { user, logout } = useAppStore();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [activeView, setActiveView] = useState(location.state?.view || 'CRM');
+  const [activeView, setActiveView] = useState(() => location.state?.view || 'CRM');
   const [selectedBBDD, setSelectedBBDD] = useState(null);
   
-  const [greeting, setGreeting] = useState('');
-  const [greetingIcon, setGreetingIcon] = useState(null);
-
-  useEffect(() => {
+  const [{ greetingIcon }] = useState(() => {
     const hour = new Date().getHours();
     if (hour < 12) {
-      setGreeting('Buenos días');
-      setGreetingIcon(<CloudSun size={24} weight="fill" className="text-amber-200" />);
+      return { greeting: 'Buenos días', greetingIcon: <CloudSun size={24} weight="fill" className="text-amber-200" /> };
     } else if (hour < 19) {
-      setGreeting('Buenas tardes');
-      setGreetingIcon(<SunHorizon size={24} weight="fill" className="text-amber-300" />);
+      return { greeting: 'Buenas tardes', greetingIcon: <SunHorizon size={24} weight="fill" className="text-amber-300" /> };
     } else {
-      setGreeting('Buenas noches');
-      setGreetingIcon(<Moon size={24} weight="fill" className="text-indigo-200" />);
+      return { greeting: 'Buenas noches', greetingIcon: <Moon size={24} weight="fill" className="text-indigo-200" /> };
     }
-  }, []);
+  });
 
   useEffect(() => {
-    if (location.state?.view) {
+    if (location.state?.view && location.state.view !== activeView) {
       setActiveView(location.state.view);
     }
-  }, [location.state]);
+  }, [location.state?.view, activeView]);
 
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
-  };
-
-  const NavItem = ({ view, icon, label, mobile = false }) => {
-    const isActive = activeView === view;
-    const baseClasses = mobile 
-      ? "relative flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 w-full"
-      : "relative flex items-center gap-3 px-6 py-3 rounded-full text-base font-bold transition-all duration-300 whitespace-nowrap";
-    
-    const activeText = isActive ? 'text-slate-900' : 'text-slate-400 hover:text-amber-200';
-    const mobileActiveText = isActive ? 'text-amber-200' : 'text-slate-500';
-
-    return (
-      <button 
-        onClick={() => setActiveView(view)} 
-        className={`${baseClasses} ${mobile ? mobileActiveText : activeText}`}
-      >
-        {isActive && !mobile && (
-          <motion.div layoutId="capsule" className="absolute inset-0 bg-gradient-to-r from-amber-200 to-amber-100 rounded-full shadow-[0_0_20px_rgba(253,230,138,0.4)]" />
-        )}
-        {isActive && mobile && (
-           <motion.div layoutId="mobile-glow" className="absolute -top-1 w-8 h-1 bg-amber-200 rounded-full shadow-[0_0_10px_rgba(253,230,138,0.8)]" />
-        )}
-        <span className="relative z-10">{icon}</span>
-        <span className={`relative z-10 ${mobile ? 'text-[10px] mt-1 font-medium' : ''}`}>{label}</span>
-      </button>
-    );
-  };
-
-  const ActionCard = ({ link }) => {
-    const url = link?.url || '#';
-    const isExternal = url.startsWith('http');
-    const cardClasses = "group relative flex flex-col justify-between h-32 md:h-36 p-5 md:p-6 bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-lg hover:border-amber-200/40 transition-all duration-300 cursor-pointer";
-
-    const CardContent = () => (
-      <>
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-200/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-        <div className="flex justify-between items-start z-10">
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-amber-200 shadow-inner group-hover:bg-amber-900/20 transition-all duration-300">
-            {link?.icon}
-          </div>
-          <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-amber-200 text-slate-500 group-hover:text-slate-900 transition-colors">
-            <ArrowUpRight size={14} weight="bold" className={isExternal ? "" : "rotate-45"} /> 
-          </div>
-        </div>
-        <span className="font-bold text-slate-200 text-xs md:text-sm tracking-wide z-10 group-hover:text-amber-100 transition-colors line-clamp-2">
-          {link?.label}
-        </span>
-      </>
-    );
-
-    const handleAction = () => {
-      if (activeView === 'BBDD' && isExternal) {
-        // En vista BBDD, abrimos en el iframe interno
-        setSelectedBBDD(link);
-        return;
-      }
-      if (isExternal) {
-        window.open(url, '_blank');
-      } else {
-        navigate(url);
-      }
-    };
-
-    return (
-      <motion.div 
-        onClick={handleAction}
-        whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}
-        className={cardClasses}
-      >
-        <CardContent />
-      </motion.div>
-    );
   };
 
   return (
@@ -175,9 +163,9 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex items-center px-6 gap-4 shrink-0">
-          <NavItem view="CRM" icon={<Kanban size={24} weight="duotone" />} label="Pipeline" />
-          <NavItem view="RENDIMIENTO" icon={<ChartLineUp size={24} weight="duotone" />} label="Data" />
-          <NavItem view="HUB" icon={<Sparkle size={24} weight="duotone" />} label="Hub" />
+          <NavItem view="CRM" icon={<Kanban size={24} weight="duotone" />} label="Pipeline" activeView={activeView} setActiveView={setActiveView} />
+          <NavItem view="RENDIMIENTO" icon={<ChartLineUp size={24} weight="duotone" />} label="Data" activeView={activeView} setActiveView={setActiveView} />
+          <NavItem view="HUB" icon={<Sparkle size={24} weight="duotone" />} label="Hub" activeView={activeView} setActiveView={setActiveView} />
         </nav>
 
         <div className="flex items-center gap-4 pl-6 pr-4 border-l border-white/10 shrink-0">
@@ -284,7 +272,7 @@ export default function Dashboard() {
                     </div>
                 </header>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5">
-                    {LINKS_FORMULARIOS.map((link, idx) => <ActionCard key={idx} link={link} />)}
+                    {LINKS_FORMULARIOS.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
                 </div>
              </motion.div>
           )}
@@ -317,7 +305,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5 overflow-y-auto custom-scroll pr-2">
-                      {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} />)}
+                      {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
                   </div>
                 )}
              </motion.div>
@@ -343,9 +331,9 @@ export default function Dashboard() {
 
       {/* --- BARRA DE NAVEGACIÓN INFERIOR (Solo Móvil) --- */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-2xl border-t border-white/10 z-50 px-6 py-2 flex justify-between items-center pb-safe-area">
-          <NavItem view="CRM" mobile icon={<Kanban size={24} weight="duotone" />} label="Pipeline" />
-          <NavItem view="RENDIMIENTO" mobile icon={<ChartLineUp size={24} weight="duotone" />} label="Data" />
-          <NavItem view="HUB" mobile icon={<Sparkle size={24} weight="fill" />} label="Hub" />
+          <NavItem view="CRM" mobile icon={<Kanban size={24} weight="duotone" />} label="Pipeline" activeView={activeView} setActiveView={setActiveView} />
+          <NavItem view="RENDIMIENTO" mobile icon={<ChartLineUp size={24} weight="duotone" />} label="Data" activeView={activeView} setActiveView={setActiveView} />
+          <NavItem view="HUB" mobile icon={<Sparkle size={24} weight="fill" />} label="Hub" activeView={activeView} setActiveView={setActiveView} />
       </nav>
 
     </div>

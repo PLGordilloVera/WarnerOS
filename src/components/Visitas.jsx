@@ -50,8 +50,10 @@ export default function Visitas() {
     'TIPO_DE_INMUEBLE': ''
   });
 
+  const { token, userEmail } = useAppStore();
+
   useEffect(() => {
-    fetch(`${API_URL}?action=getInmuebles`)
+    fetch(`${API_URL}?action=getInmuebles&token=${encodeURIComponent(token || '')}&userEmail=${encodeURIComponent(userEmail || '')}`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setProperties(data);
@@ -97,7 +99,7 @@ export default function Visitas() {
       await fetch(API_URL, { 
         method: 'POST', 
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'addVisita', ...formData }) 
+        body: JSON.stringify({ action: 'addVisita', token, userEmail, ...formData }) 
       });
       toast.success("¡Visita registrada exitosamente!");
       setFormData({

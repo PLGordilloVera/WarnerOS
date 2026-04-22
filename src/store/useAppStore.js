@@ -8,6 +8,7 @@ export const useAppStore = create((set) => ({
   // --- Estado Global ---
   user: JSON.parse(localStorage.getItem('warner_user')) || null,
   token: localStorage.getItem('warner_token') || null,
+  userEmail: JSON.parse(localStorage.getItem('warner_user'))?.email || null,
   
   // Verificamos si hay token guardado para permitir el acceso
   isAuthenticated: !!localStorage.getItem('warner_token'),
@@ -26,6 +27,7 @@ export const useAppStore = create((set) => ({
     set({ 
       user: userData, 
       token: token,
+      userEmail: userData.email,
       isAuthenticated: true 
     });
   },
@@ -37,6 +39,7 @@ export const useAppStore = create((set) => ({
     set({ 
       user: null, 
       token: null,
+      userEmail: null,
       isAuthenticated: false, 
       clients: [] 
     });
@@ -44,6 +47,6 @@ export const useAppStore = create((set) => ({
 
   // Actualiza la caché local de clientes
   setClients: (newClients) => set({ 
-    clients: newClients 
+    clients: Array.isArray(newClients) ? newClients : [] 
   })
 }));

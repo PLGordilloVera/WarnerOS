@@ -30,11 +30,13 @@ export default function Carteles() {
   const [foto, setFoto] = useState(null);
   const [nota, setNota] = useState(null);
 
+  const { token, userEmail } = useAppStore();
+
   useEffect(() => {
     const fetchProperties = async () => {
       setLoadingProps(true);
       try {
-        const response = await fetch(`${API_URL}?action=getInmuebles&filtro_carteles=true`, {
+        const response = await fetch(`${API_URL}?action=getInmuebles&filtro_carteles=true&token=${encodeURIComponent(token || '')}&userEmail=${encodeURIComponent(userEmail || '')}`, {
           method: 'GET',
           mode: 'cors',      // Forzar modo CORS
           redirect: 'follow' // OBLIGATORIO: Google redirige a una URL temporal

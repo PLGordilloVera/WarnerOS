@@ -388,7 +388,7 @@ const StatsBar = ({ clients }) => {
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 export default function CRM() {
   const navigate = useNavigate();
-  const { token, userEmail, clients, setClients, user } = useAppStore();
+  const { token, userEmail, clients, setClients, user, logout } = useAppStore();
 
   const [loading, setLoading]           = useState(true);
   const [refreshing, setRefreshing]     = useState(false);
@@ -409,9 +409,22 @@ export default function CRM() {
     try {
       const url = `${API_URL}?action=getData&userRequested=${encodeURIComponent(user.name)}&token=${encodeURIComponent(token)}&userEmail=${encodeURIComponent(userEmail)}`;
       const data = await fetch(url).then(r => r.json());
-      setClients(data);
-      if (isManual) toast.success('Base de datos sincronizada');
-    } catch {
+      
+      if (Array.isArray(data)) {
+        setClients(data);
+        if (isManual) toast.success('Base de datos sincronizada');
+      } else {
+        console.error('Data fetched is not an array:', data);
+        setClients([]);
+        if (data?.error) {
+          toast.error(`Error: ${data.error}`);
+          if (data.error === 'Unauthorized') {
+            setTimeout(() => logout(), 2000);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
       toast.error('Error al sincronizar');
     } finally { setLoading(false); setRefreshing(false); }
   }, [user?.name, setClients, token, userEmail]);

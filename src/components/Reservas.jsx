@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LockKey, CaretRight, User, SpinnerGap, House, 
-  MapPin, Money, CheckCircle, MagnifyingGlass, X
+  MapPin, Money, CheckCircle, MagnifyingGlass, X, Funnel
 } from 'phosphor-react';
 import { Toaster, toast } from 'sonner';
 
@@ -65,12 +65,13 @@ export default function Reservas() {
     agente: user?.name || ''
   });
 
+  const { token, userEmail } = useAppStore();
+
   // Cargar propiedades CAPTADAS al iniciar
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        // 👈 CAMBIA "getInmuebles" por "getInmueblesReservas"
-        const response = await fetch(`${API_URL}?action=getInmueblesReservas`, {
+        const response = await fetch(`${API_URL}?action=getInmueblesReservas&token=${encodeURIComponent(token || '')}&userEmail=${encodeURIComponent(userEmail || '')}`, {
           method: 'GET',
           redirect: 'follow'
         }); 
@@ -126,6 +127,7 @@ export default function Reservas() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.padron) return toast.warning("Debes seleccionar una propiedad válida");
+    if (formData.padron === 'COMPARTIDA' && !formData.direccion) return toast.warning("Debes ingresar la dirección manual");
     if (!formData.valor) return toast.warning("Ingresa el valor de reserva");
 
     setLoading(true);
@@ -223,7 +225,23 @@ export default function Reservas() {
                                 </li>
                             ))
                             ) : <li className="px-4 py-6 text-slate-600 text-xs text-center uppercase tracking-widest">No se encontraron resultados</li>}
+                            <li onClick={() => { setFormData({...formData, padron: 'COMPARTIDA', direccion: ''}); setSearchTerm('PROPIEDAD COMPARTIDA'); setIsDropdownOpen(false); }} className="px-5 py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 cursor-pointer border-t border-white/10 flex items-center gap-3 font-bold sticky bottom-0 backdrop-blur-md">
+                                <Funnel size={16} weight="fill" /><span className="text-xs uppercase tracking-wider">Propiedad Compartida / Otra</span>
+                            </li>
                         </motion.ul>
+                        )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {formData.padron === 'COMPARTIDA' && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden mt-4">
+                                <label className="text-[10px] font-bold text-amber-500 uppercase ml-1 mb-1 block tracking-wider">Dirección Manual</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500" size={20} />
+                                    <input type="text" name="direccion" placeholder="Calle y Número..." value={formData.direccion} onChange={handleChange}
+                                    className="w-full bg-amber-900/10 border border-amber-500/30 rounded-xl p-4 pl-12 text-amber-100 placeholder:text-amber-500/50 focus:border-amber-400/50 focus:outline-none transition-all uppercase" />
+                                </div>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
