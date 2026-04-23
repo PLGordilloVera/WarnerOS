@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Plotly from 'react-plotly.js';
 import { marked } from 'marked';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAppStore } from '../store/useAppStore';
 import { 
   PaperPlaneRight, X, Robot, CircleNotch, Warning, 
   CaretDown, ChartBar, User, Funnel, CalendarBlank 
