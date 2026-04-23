@@ -135,10 +135,11 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if (location.state?.view && location.state.view !== activeView) {
+    if (location.state?.view) {
       setActiveView(location.state.view);
+      navigate('.', { replace: true, state: {} });
     }
-  }, [location.state?.view, activeView]);
+  }, [location.state?.view, navigate]);
 
   const handleLogout = () => {
     logout();
