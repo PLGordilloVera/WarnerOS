@@ -134,7 +134,8 @@ export default function Reservas() {
     try {
       const response = await fetch(API_URL, { 
           method: 'POST', 
-          body: JSON.stringify({ action: 'addReserva', ...formData }) 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'addReserva', token, userEmail, ...formData }) 
       });
       const result = await response.json();
       
