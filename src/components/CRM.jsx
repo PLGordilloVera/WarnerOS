@@ -7,7 +7,7 @@ import {
   FloppyDisk, Plus, ArrowsClockwise, CaretRight,
   UserPlus, Buildings, Phone, EnvelopeSimple,
   MapPin, CurrencyDollar, House, Timer, Circle, CheckCircle,
-  FileXlsx, Notebook, ChatCircleText, ArrowRight
+  FileArrowUp, Notebook, ChatCircleText, ArrowRight
 } from 'phosphor-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
@@ -443,7 +443,7 @@ export default function CRM() {
           </div>
           
           <button onClick={() => setShowBulkImport(true)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors border border-white/5" title="Importar Excel">
-            <FileXlsx size={16} weight="duotone" className="text-emerald-400" /> <span className="hidden md:inline">Importar</span>
+            <FileArrowUp size={16} weight="duotone" className="text-emerald-400" /> <span className="hidden md:inline">Importar</span>
           </button>
           
           <button onClick={() => fetchClients(true)} disabled={refreshing} className="p-2.5 bg-slate-800 rounded-xl text-slate-400 hover:text-amber-400 transition-colors border border-white/5 disabled:opacity-50">

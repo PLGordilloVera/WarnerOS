@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadSimple, FileXlsx, CheckCircle, ArrowRight, X, ArrowsLeftRight } from 'phosphor-react';
+import { UploadSimple, FileArrowUp, CheckCircle, ArrowRight, X, ArrowsLeftRight } from 'phosphor-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
 
@@ -131,7 +131,7 @@ export default function BulkImport({ onClose, onImportSuccess }) {
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-950/50 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <FileXlsx size={24} weight="duotone" className="text-emerald-400" />
+              <FileArrowUp size={24} weight="duotone" className="text-emerald-400" />
               Importación Masiva
             </h2>
             <p className="text-xs text-slate-400 mt-1">Carga leads desde un archivo Excel (.xlsx)</p>
