@@ -6,12 +6,12 @@ import {
   WarningCircle, CalendarCheck, X, WhatsappLogo,
   FloppyDisk, Plus, ArrowsClockwise, CaretRight,
   UserPlus, Buildings, Phone, EnvelopeSimple,
-  MapPin, CurrencyDollar, House, Tag, Clock,
-  SortAscending, Funnel, ChartBar, CheckCircle,
-  ArrowRight, Circle, Timer
+  MapPin, CurrencyDollar, House, Timer, Circle, CheckCircle,
+  FileXlsx, Notebook, ChatCircleText, ArrowRight
 } from 'phosphor-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
+import BulkImport from './BulkImport';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -24,22 +24,9 @@ const STAGES = [
   { id: 'CERRADO',    label: 'CERRADO',    short: 'CERR.',   color: '#4ade80', glow: 'rgba(74,222,128,0.3)',   icon: '✓' },
 ];
 
-// ─── COLORES POR CATEGORIA ────────────────────────────────────────────────────
-const CAT_CONFIG = {
-  COMPRADOR:    { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)',  label: 'COMPRA' },
-  INQUILINO:    { color: '#34d399', bg: 'rgba(52,211,153,0.1)',  label: 'ALQUILER' },
-  VENDEDOR:     { color: '#fb923c', bg: 'rgba(251,146,60,0.1)',  label: 'VENDE' },
-  PROPIETARIO:  { color: '#c084fc', bg: 'rgba(192,132,252,0.1)', label: 'ALQUILA' },
-};
-
-// ─── ORIGEN: colores para badges ─────────────────────────────────────────────
-const ORIGEN_COLORS = {
-  'FACEBOOK ADS':   '#1877f2',
-  'INSTAGRAM ADS':  '#e1306c',
-  'REFERIDO':       '#4ade80',
-  'PORTAL':         '#fbbf24',
-  'LLAMADA':        '#38bdf8',
-  'WHATSAPP':       '#25d366',
+const FUNNELS = {
+  COMPRADORES: { label: 'Compradores e Inquilinos', categories: ['COMPRADOR', 'INQUILINO'], color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
+  VENDEDORES: { label: 'Vendedores y Propietarios', categories: ['VENDEDOR', 'PROPIETARIO'], color: '#fb923c', bg: 'rgba(251,146,60,0.1)' }
 };
 
 // ─── HEALTH STATUS ────────────────────────────────────────────────────────────
@@ -60,10 +47,10 @@ const fmtTel = (t) => String(t || '').replace(/\D/g, '');
 const fmtDate = (d) => d ? new Date(d.includes('T') ? d : `${d}T12:00:00`).toLocaleDateString('es-AR', { day:'2-digit', month:'short' }) : '—';
 const fmtMoney = (v) => v ? `$${Number(v).toLocaleString('es-AR')}` : null;
 
-// ─── TARJETA KANBAN ───────────────────────────────────────────────────────────
-const KanbanCard = ({ client, onSelect, onDragStart }) => {
+// ─── TARJETA KANBAN MEJORADA ──────────────────────────────────────────────────
+const KanbanCard = ({ client, funnelKey, onSelect, onDragStart }) => {
   const health = getHealthStatus(client);
-  const cat = CAT_CONFIG[client.cat] || CAT_CONFIG.COMPRADOR;
+  const funnel = FUNNELS[funnelKey];
   const tel = fmtTel(client.tel);
   const lastNote = client.notas ? client.notas.split('\n')[0] : null;
 
@@ -74,48 +61,55 @@ const KanbanCard = ({ client, onSelect, onDragStart }) => {
       onDragStart={() => onDragStart(client.id)}
       onClick={() => onSelect(client)}
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
-      style={{ '--cat-color': cat.color }}
+      style={{ '--cat-color': funnel.color }}
       className="group relative bg-[#0f172a] border border-white/[0.06] rounded-2xl overflow-hidden cursor-pointer
                  hover:border-[var(--cat-color)]/40 transition-all duration-200 shadow-lg"
     >
-      {/* borde lateral coloreado */}
       <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
-           style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
+           style={{ backgroundColor: funnel.color, boxShadow: `0 0 8px ${funnel.color}` }} />
 
       <div className="pl-4 pr-3 pt-3 pb-3">
-        {/* Fila 1: nombre + badge categoría */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <h4 className="text-[13px] font-bold text-white leading-tight truncate flex-1">{client.nom}</h4>
           <span className="shrink-0 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider"
-                style={{ backgroundColor: cat.bg, color: cat.color }}>
-            {cat.label}
+                style={{ backgroundColor: funnel.bg, color: funnel.color }}>
+            {client.cat}
           </span>
         </div>
 
-        {/* Fila 2: Propiedad/Zona */}
-        {(client.zona || client.prop) && (
-          <div className="flex items-center gap-1 text-[10px] text-slate-500 mb-2 truncate">
-            <MapPin size={9} weight="fill" className="shrink-0 text-slate-600" />
-            <span className="truncate">{client.zona || client.prop}</span>
+        {/* Datos clave según el tipo de funnel */}
+        {funnelKey === 'COMPRADORES' ? (
+          <div className="flex flex-col gap-1 mb-2 text-[10px] text-slate-500 truncate">
+            {client.zona && (
+              <div className="flex items-center gap-1">
+                <MapPin size={10} weight="fill" className="text-slate-600 shrink-0" />
+                <span className="truncate">{client.zona}</span>
+              </div>
+            )}
+            {client.pre && (
+              <div className="flex items-center gap-1 text-amber-300/70">
+                <CurrencyDollar size={10} weight="bold" className="shrink-0" />
+                <span className="truncate">{client.pre}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1 mb-2 text-[10px] text-slate-500 truncate">
+            {client.prop && (
+              <div className="flex items-center gap-1">
+                <House size={10} weight="fill" className="text-slate-600 shrink-0" />
+                <span className="truncate">{client.prop}</span>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Fila 3: presupuesto si tiene */}
-        {client.pre && (
-          <div className="flex items-center gap-1 text-[10px] text-amber-300/70 mb-2">
-            <CurrencyDollar size={9} weight="bold" className="shrink-0" />
-            <span>{client.pre}</span>
-          </div>
-        )}
-
-        {/* Última nota (preview) */}
         {lastNote && (
           <p className="text-[9px] text-slate-600 italic truncate mb-2 border-l border-slate-700 pl-2">
             {lastNote.replace(/^\[.*?\]\s*/, '')}
           </p>
         )}
 
-        {/* Fila bottom: health + acción rápida WA */}
         <div className="flex items-center justify-between pt-2 border-t border-white/[0.04] mt-1">
           <span className="text-[9px] font-bold flex items-center gap-1" style={{ color: health.color }}>
             <span style={{ fontSize: 6 }}>●</span> {health.label}
@@ -135,54 +129,15 @@ const KanbanCard = ({ client, onSelect, onDragStart }) => {
   );
 };
 
-// ─── TARJETA AGENDA ───────────────────────────────────────────────────────────
-const AgendaCard = ({ client, onSelect }) => {
-  const health = getHealthStatus(client);
-  const cat = CAT_CONFIG[client.cat] || CAT_CONFIG.COMPRADOR;
-  const tel = fmtTel(client.tel);
-
-  return (
-    <motion.div
-      whileHover={{ x: 3 }}
-      onClick={() => onSelect(client)}
-      className="flex items-center gap-3 p-3 bg-[#0f172a] border border-white/[0.06] rounded-xl
-                 hover:border-white/20 cursor-pointer transition-all group"
-    >
-      <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: health.color }} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[12px] font-bold text-white truncate">{client.nom}</span>
-          <span className="text-[8px] font-black shrink-0" style={{ color: health.color }}>{health.label}</span>
-        </div>
-        <div className="flex items-center gap-3 mt-0.5 text-[9px] text-slate-500">
-          <span className="font-black uppercase" style={{ color: cat.color }}>{cat.label}</span>
-          {client.zona && <span className="truncate">{client.zona}</span>}
-          {client.etapa && (
-            <span className="bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 uppercase">{client.etapa}</span>
-          )}
-        </div>
-      </div>
-      {tel && (
-        <a href={`https://wa.me/${tel}`} target="_blank" rel="noreferrer"
-           onClick={(e) => e.stopPropagation()}
-           className="p-2 bg-green-500/10 rounded-lg text-green-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-green-500/20">
-          <WhatsappLogo size={14} weight="fill" />
-        </a>
-      )}
-    </motion.div>
-  );
-};
-
-// ─── MODAL DE GESTIÓN ─────────────────────────────────────────────────────────
-const GestionModal = ({ client, onClose, onSave, saving }) => {
+// ─── PANEL LATERAL (SLIDE-OVER) ───────────────────────────────────────────────
+const SidePanel = ({ client, onClose, onSave, saving }) => {
   const [tempNote, setTempNote] = useState('');
   const [tempDate, setTempDate] = useState(client.agenda ? client.agenda.split('T')[0] : '');
   const [tempEtapa, setTempEtapa] = useState(client.etapa || 'INGRESO');
-  const cat = CAT_CONFIG[client.cat] || CAT_CONFIG.COMPRADOR;
+  const funnel = FUNNELS[client.cat === 'COMPRADOR' || client.cat === 'INQUILINO' ? 'COMPRADORES' : 'VENDEDORES'];
   const tel = fmtTel(client.tel);
   const health = getHealthStatus(client);
 
-  // Notas históricas parseadas
   const notasHistory = useMemo(() => {
     if (!client.notas) return [];
     return client.notas.split('\n').filter(Boolean).map(line => {
@@ -194,194 +149,166 @@ const GestionModal = ({ client, onClose, onSave, saving }) => {
   const handleSave = () => onSave({ tempDate, tempNote, tempEtapa });
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4"
-      onClick={onClose}
-    >
+    <>
       <motion.div
-        initial={{ scale: 0.92, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.92, y: 20, opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-        className="bg-[#0b1120] border border-white/10 w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ x: '100%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="fixed top-0 right-0 bottom-0 z-[110] w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-[#080e1a] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col"
       >
-        {/* Header del modal */}
-        <div className="relative p-5 pb-4 border-b border-white/[0.06]"
-             style={{ background: `linear-gradient(135deg, ${cat.bg}, transparent)` }}>
+        {/* Header */}
+        <div className="relative p-6 border-b border-white/[0.06] shrink-0"
+             style={{ background: `linear-gradient(135deg, ${funnel.bg}, transparent)` }}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-black text-white leading-tight truncate">{client.nom}</h3>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest"
-                      style={{ backgroundColor: cat.bg, color: cat.color }}>{cat.label}</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: health.color }}>
+              <h3 className="text-2xl font-black text-white leading-tight truncate">{client.nom}</h3>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest"
+                      style={{ backgroundColor: funnel.bg, color: funnel.color }}>{client.cat}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: health.color }}>
                   {health.label}
                 </span>
                 {client.agenda && (
-                  <span className="text-[9px] text-slate-500">· Agenda: {fmtDate(client.agenda)}</span>
+                  <span className="text-[10px] text-slate-400">· Agenda: {fmtDate(client.agenda)}</span>
                 )}
               </div>
             </div>
-            <button onClick={onClose} className="p-1.5 hover:bg-white/5 rounded-full transition-colors shrink-0">
-              <X size={18} className="text-slate-500" />
+            <button onClick={onClose} className="p-2 bg-slate-900/50 hover:bg-white/10 rounded-full transition-colors shrink-0 border border-white/5">
+              <X size={20} className="text-slate-300" />
             </button>
           </div>
 
-          {/* Datos clave del cliente en el header */}
-          <div className="flex flex-wrap gap-3 mt-3">
+          <div className="flex flex-wrap gap-4 mt-5">
             {tel && (
-              <a href={`tel:+${tel}`} className="flex items-center gap-1.5 text-[10px] text-slate-300 hover:text-white transition-colors">
-                <Phone size={11} weight="fill" className="text-slate-500" /> {client.tel}
+              <a href={`https://wa.me/${tel}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[11px] font-medium text-slate-300 hover:text-green-400 transition-colors">
+                <WhatsappLogo size={14} weight="fill" className="text-green-500" /> {client.tel}
               </a>
             )}
             {client.mail && (
-              <span className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                <EnvelopeSimple size={11} weight="fill" className="text-slate-500" /> {client.mail}
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-300">
+                <EnvelopeSimple size={14} weight="fill" className="text-slate-500" /> {client.mail}
               </span>
             )}
-            {client.zona && (
-              <span className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                <MapPin size={11} weight="fill" className="text-slate-500" /> {client.zona}
-              </span>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scroll">
+          
+          {/* Detalles Generales */}
+          <div className="grid grid-cols-2 gap-4">
+            {(client.zona || client.prop) && (
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Interés / Propiedad</span>
+                <span className="text-sm text-slate-200 font-medium">{client.zona || client.prop}</span>
+              </div>
             )}
             {client.pre && (
-              <span className="flex items-center gap-1.5 text-[10px] text-amber-300/70">
-                <CurrencyDollar size={11} weight="bold" /> {client.pre}
-              </span>
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest block mb-1">Presupuesto</span>
+                <span className="text-sm text-amber-300 font-medium">{client.pre}</span>
+              </div>
             )}
           </div>
 
-          {/* Propiedad/Interés */}
-          {client.prop && (
-            <div className="mt-2 flex items-center gap-1.5 text-[10px] text-slate-400">
-              <House size={11} weight="fill" className="text-slate-500" />
-              <span className="font-medium">{client.prop}</span>
-            </div>
+          {/* Contexto Inicial (Observaciones) */}
+          {client.notas?.includes('OBSERVACIONES:') === false && client.observaciones && (
+             <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-5">
+               <h4 className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">
+                 <Notebook size={16} weight="duotone" /> Contexto Inicial (Origen)
+               </h4>
+               <p className="text-sm text-blue-100/80 leading-relaxed font-light">{client.observaciones}</p>
+             </div>
           )}
-        </div>
 
-        <div className="p-5 space-y-4 max-h-[65vh] overflow-y-auto">
-          {/* Cambiar etapa del pipeline */}
-          <div>
-            <label className="text-[9px] font-black text-slate-500 block mb-2 uppercase tracking-widest">Etapa del Pipeline</label>
-            <div className="flex gap-1.5 flex-wrap">
-              {STAGES.map(s => (
-                <button key={s.id} onClick={() => setTempEtapa(s.id)}
-                        className="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border"
-                        style={tempEtapa === s.id
-                          ? { backgroundColor: s.color + '20', color: s.color, borderColor: s.color + '60', boxShadow: `0 0 8px ${s.glow}` }
-                          : { backgroundColor: 'transparent', color: '#475569', borderColor: 'rgba(255,255,255,0.08)' }}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
+          {/* Gestión Actual */}
+          <div className="bg-slate-900/80 rounded-2xl border border-white/5 p-5">
+             <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Actualizar Gestión</h4>
+             
+             <div className="mb-5">
+                <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest">Etapa del Pipeline</label>
+                <div className="flex gap-2 flex-wrap">
+                  {STAGES.map(s => (
+                    <button key={s.id} onClick={() => setTempEtapa(s.id)}
+                            className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                            style={tempEtapa === s.id
+                              ? { backgroundColor: s.color + '15', color: s.color, borderColor: s.color + '50', boxShadow: `0 0 10px ${s.glow}` }
+                              : { backgroundColor: 'transparent', color: '#64748b', borderColor: 'rgba(255,255,255,0.05)' }}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+             </div>
+
+             <div className="mb-5">
+                <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest">Próxima Acción (Agenda)</label>
+                <input type="date" value={tempDate} onChange={(e) => setTempDate(e.target.value)}
+                       className="w-full max-w-[200px] bg-slate-950 border border-white/10 rounded-xl p-3 text-slate-200 text-sm focus:border-amber-400/50 outline-none transition-all" />
+             </div>
+
+             <div>
+                <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest">Nueva Nota</label>
+                <textarea value={tempNote} onChange={(e) => setTempNote(e.target.value)}
+                          placeholder="Escribe aquí el resumen de la llamada o acción a tomar..."
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-sm text-slate-200 h-24 resize-none focus:outline-none focus:border-amber-400/50 transition-all placeholder:text-slate-700" />
+             </div>
           </div>
 
-          {/* Próxima acción + WhatsApp en grid */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Timeline de Historial */}
+          {(notasHistory.length > 0 || client.observaciones) && (
             <div>
-              <label className="text-[9px] font-black text-slate-500 block mb-1.5 uppercase tracking-widest">
-                Próxima Acción <span className="text-red-400">*</span>
-              </label>
-              <input type="date" value={tempDate} onChange={(e) => setTempDate(e.target.value)}
-                     className="w-full bg-slate-950 border border-white/10 rounded-xl p-2.5 text-white text-xs
-                                focus:border-amber-200/50 outline-none transition-all" />
-            </div>
-            <div>
-              <label className="text-[9px] font-black text-slate-500 block mb-1.5 uppercase tracking-widest">Contacto Rápido</label>
-              <div className="flex gap-2 h-[38px]">
-                {tel ? (
-                  <>
-                    <a href={`https://wa.me/${tel}`} target="_blank" rel="noreferrer"
-                       className="flex-1 flex items-center justify-center gap-1.5 bg-green-500/10 text-green-400
-                                  rounded-xl border border-green-500/20 font-bold text-[10px] hover:bg-green-500/20 transition-all">
-                      <WhatsappLogo size={14} weight="fill" /> WA
-                    </a>
-                    <a href={`tel:+${tel}`}
-                       className="flex-1 flex items-center justify-center gap-1.5 bg-blue-500/10 text-blue-400
-                                  rounded-xl border border-blue-500/20 font-bold text-[10px] hover:bg-blue-500/20 transition-all">
-                      <Phone size={14} weight="fill" /> TEL
-                    </a>
-                  </>
-                ) : (
-                  <span className="flex items-center text-[10px] text-slate-600 px-2">Sin teléfono</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Nueva nota */}
-          <div>
-            <label className="text-[9px] font-black text-slate-500 block mb-1.5 uppercase tracking-widest">Agregar Nota de Gestión</label>
-            <textarea value={tempNote} onChange={(e) => setTempNote(e.target.value)}
-                      placeholder="¿Qué se habló? ¿Qué queda pendiente?"
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-xs text-white h-20
-                                 resize-none focus:outline-none focus:border-amber-200/50 transition-all placeholder:text-slate-700" />
-          </div>
-
-          {/* Historial de notas */}
-          {notasHistory.length > 0 && (
-            <div>
-              <label className="text-[9px] font-black text-slate-500 block mb-2 uppercase tracking-widest">Historial de Gestión</label>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+              <h4 className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-widest mb-6 px-1">
+                 <ChatCircleText size={16} weight="duotone" /> Timeline de Interacciones
+              </h4>
+              <div className="relative pl-4 space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-800 before:to-transparent">
+                
                 {notasHistory.map((n, i) => (
-                  <div key={i} className="flex gap-2 text-[10px]">
-                    <span className="text-slate-600 font-mono shrink-0 pt-0.5">{n.fecha}</span>
-                    <span className="text-slate-400 leading-relaxed">{n.texto}</span>
+                  <div key={i} className="relative flex items-start justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full border-[3px] border-[#080e1a] bg-amber-400 text-slate-900 absolute left-[-11px] shrink-0">
+                       <span className="w-1.5 h-1.5 bg-[#080e1a] rounded-full"></span>
+                    </div>
+                    <div className="w-[calc(100%-2rem)] bg-slate-900/50 border border-white/5 rounded-2xl p-4 shadow-sm">
+                       <div className="text-[10px] font-black text-amber-500 mb-1">{n.fecha}</div>
+                       <div className="text-sm text-slate-300 leading-relaxed font-light">{n.texto}</div>
+                    </div>
                   </div>
                 ))}
+
+                {/* Hito Carga Inicial (Observaciones) */}
+                {client.observaciones && (
+                  <div className="relative flex items-start justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full border-[3px] border-[#080e1a] bg-blue-500 text-slate-900 absolute left-[-11px] shrink-0">
+                       <span className="w-1.5 h-1.5 bg-[#080e1a] rounded-full"></span>
+                    </div>
+                    <div className="w-[calc(100%-2rem)] bg-blue-900/10 border border-blue-500/20 rounded-2xl p-4 shadow-sm">
+                       <div className="text-[10px] font-black text-blue-400 mb-1">CARGA INICIAL (OBSERVACIONES)</div>
+                       <div className="text-sm text-blue-100/70 leading-relaxed font-light">{client.observaciones}</div>
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           )}
+
         </div>
 
-        {/* Footer del modal */}
-        <div className="p-5 pt-0">
+        {/* Footer */}
+        <div className="p-6 border-t border-white/5 bg-slate-950/50 shrink-0">
           <button onClick={handleSave} disabled={saving || !tempDate}
-                  className="w-full bg-amber-300 text-slate-900 font-black py-3.5 rounded-2xl flex items-center
-                             justify-center gap-2 hover:bg-amber-200 transition-all shadow-xl shadow-amber-300/10
-                             disabled:opacity-40 disabled:cursor-not-allowed text-sm uppercase tracking-widest">
-            {saving ? <SpinnerGap size={18} className="animate-spin" /> : <FloppyDisk size={18} weight="bold" />}
-            {saving ? 'Guardando...' : 'Guardar Gestión'}
+                  className="w-full bg-emerald-500 text-slate-950 font-black py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/10 disabled:opacity-40 disabled:cursor-not-allowed text-sm uppercase tracking-widest">
+            {saving ? <SpinnerGap size={20} className="animate-spin" /> : <FloppyDisk size={20} weight="bold" />}
+            {saving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
           </button>
         </div>
       </motion.div>
-    </motion.div>
-  );
-};
-
-// ─── BARRA DE STATS (mini KPIs en cabecera) ───────────────────────────────────
-const StatsBar = ({ clients }) => {
-  const vencidos = clients.filter(c => getHealthStatus(c).status === 'vencido').length;
-  const hoy      = clients.filter(c => getHealthStatus(c).status === 'hoy').length;
-  const sinAccion = clients.filter(c => !c.agenda).length;
-  const cerrados = clients.filter(c => c.etapa === 'CERRADO').length;
-
-  return (
-    <div className="flex gap-3 text-[9px] font-black uppercase tracking-widest">
-      {vencidos > 0 && (
-        <span className="flex items-center gap-1 text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20">
-          <WarningCircle size={10} weight="fill" /> {vencidos} vencidos
-        </span>
-      )}
-      {hoy > 0 && (
-        <span className="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-2 py-1 rounded-lg border border-amber-400/20">
-          <Timer size={10} weight="fill" /> {hoy} hoy
-        </span>
-      )}
-      {sinAccion > 0 && (
-        <span className="flex items-center gap-1 text-slate-500 bg-slate-800 px-2 py-1 rounded-lg border border-white/5">
-          <Circle size={10} weight="fill" /> {sinAccion} sin agenda
-        </span>
-      )}
-      {cerrados > 0 && (
-        <span className="flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded-lg border border-green-400/20">
-          <CheckCircle size={10} weight="fill" /> {cerrados} cerrados
-        </span>
-      )}
-    </div>
+    </>
   );
 };
 
@@ -390,19 +317,17 @@ export default function CRM() {
   const navigate = useNavigate();
   const { token, userEmail, clients, setClients, user, logout } = useAppStore();
 
-  const [loading, setLoading]           = useState(true);
-  const [refreshing, setRefreshing]     = useState(false);
-  const [currentCat, setCurrentCat]     = useState('COMPRADOR');
-  const [searchTerm, setSearchTerm]     = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentFunnel, setCurrentFunnel] = useState('COMPRADORES');
+  const [searchTerm, setSearchTerm] = useState('');
   const [draggedItemId, setDraggedItemId] = useState(null);
-  const [viewMode, setViewMode]         = useState('KANBAN');
-  const [showNewMenu, setShowNewMenu]   = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [saving, setSaving]             = useState(false);
-  const [sortBy, setSortBy]             = useState('urgencia'); // 'urgencia' | 'nombre' | 'fecha'
-  const [filterOrigenActivo, setFilterOrigenActivo] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
-  // ─── FETCH ──────────────────────────────────────────────────────────────────
+  const openModal = (client) => setSelectedClient(client);
+
   const fetchClients = useCallback(async (isManual = false) => {
     if (!user?.name) return;
     if (isManual) setRefreshing(true); else setLoading(true);
@@ -414,7 +339,6 @@ export default function CRM() {
         setClients(data);
         if (isManual) toast.success('Base de datos sincronizada');
       } else {
-        console.error('Data fetched is not an array:', data);
         setClients([]);
         if (data?.error) {
           toast.error(`Error: ${data.error}`);
@@ -424,18 +348,16 @@ export default function CRM() {
         }
       }
     } catch (error) {
-      console.error('Fetch error:', error);
       toast.error('Error al sincronizar');
     } finally { setLoading(false); setRefreshing(false); }
   }, [user?.name, setClients, token, userEmail]);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 
-  // ─── FILTRADO Y ORDENAMIENTO ─────────────────────────────────────────────────
   const filteredClients = useMemo(() => {
+    const funnelCats = FUNNELS[currentFunnel].categories;
     let list = clients.filter(c => {
-      if (c.cat !== currentCat) return false;
-      if (filterOrigenActivo && c.origen !== filterOrigenActivo) return false;
+      if (!funnelCats.includes(c.cat)) return false;
       if (!searchTerm) return true;
       const q = searchTerm.toLowerCase();
       return (c.nom?.toLowerCase().includes(q)) ||
@@ -443,18 +365,10 @@ export default function CRM() {
              (c.zona?.toLowerCase().includes(q)) ||
              (c.tel?.includes(q));
     });
+    // Default sort by urgency
+    return list.sort((a, b) => getHealthStatus(a).urgency - getHealthStatus(b).urgency);
+  }, [clients, currentFunnel, searchTerm]);
 
-    if (sortBy === 'urgencia') {
-      list = list.sort((a, b) => getHealthStatus(a).urgency - getHealthStatus(b).urgency);
-    } else if (sortBy === 'nombre') {
-      list = list.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-    } else if (sortBy === 'fecha') {
-      list = list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    }
-    return list;
-  }, [clients, currentCat, searchTerm, sortBy, filterOrigenActivo]);
-
-  // ─── DRAG & DROP ─────────────────────────────────────────────────────────────
   const handleDrop = (e, newStage) => {
     e.preventDefault();
     if (!draggedItemId) return;
@@ -466,10 +380,6 @@ export default function CRM() {
     setDraggedItemId(null);
   };
 
-  // ─── ABRIR MODAL ─────────────────────────────────────────────────────────────
-  const openModal = (client) => setSelectedClient(client);
-
-  // ─── GUARDAR CAMBIOS ──────────────────────────────────────────────────────────
   const handleSaveModal = async ({ tempDate, tempNote, tempEtapa }) => {
     if (!tempDate) { toast.error('La Próxima Acción es obligatoria.'); return; }
     setSaving(true);
@@ -498,264 +408,92 @@ export default function CRM() {
     } finally { setSaving(false); }
   };
 
-
-
-  const cats = ['COMPRADOR', 'INQUILINO', 'VENDEDOR', 'PROPIETARIO'];
-
-  // ─── CONTADORES POR CATEGORÍA ─────────────────────────────────────────────
-  const countByCat = useMemo(() =>
-    cats.reduce((acc, cat) => {
-      acc[cat] = clients.filter(c => c.cat === cat).length;
-      return acc;
-    }, {}), [clients]);
-
-      // ─── LOADING ─────────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-full gap-4">
       <SpinnerGap size={36} className="animate-spin text-amber-300" />
-      <span className="text-[11px] font-black text-slate-500 tracking-[0.25em] uppercase">Cargando cartera...</span>
+      <span className="text-[11px] font-black text-slate-500 tracking-[0.25em] uppercase">Cargando pipeline...</span>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full bg-[#080e1a] p-3 md:p-5 rounded-2xl md:rounded-3xl border border-white/[0.07]
-                    shadow-2xl relative overflow-hidden">
+    <div className="flex flex-col h-full bg-[#040810] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/[0.05] shadow-2xl relative overflow-hidden">
       <Toaster position="top-center" theme="dark" richColors />
 
-      {/* ── CABECERA ── */}
-      <div className="flex flex-col gap-3 mb-4 shrink-0">
-
-        {/* Fila 1: Tabs vista + acciones */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          {/* Toggle vista */}
-          <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] gap-1">
-            {[
-              { id: 'KANBAN', icon: <Kanban size={13} weight="fill" />, label: 'PIPELINE' },
-              { id: 'AGENDA', icon: <CalendarBlank size={13} weight="fill" />, label: 'AGENDA' },
-            ].map(v => (
-              <button key={v.id} onClick={() => setViewMode(v.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black rounded-lg transition-all uppercase tracking-wider
-                        ${viewMode === v.id ? 'bg-amber-300 text-slate-900' : 'text-slate-500 hover:text-white'}`}>
-                {v.icon} {v.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Acciones derecha */}
-          <div className="flex items-center gap-2">
-            {/* Sort */}
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                    className="bg-slate-950/80 border border-white/[0.06] text-slate-400 text-[9px] font-black
-                               uppercase tracking-wider rounded-xl px-3 py-2 outline-none">
-              <option value="urgencia">Por urgencia</option>
-              <option value="nombre">Por nombre</option>
-              <option value="fecha">Por fecha</option>
-            </select>
-
-            <button onClick={() => fetchClients(true)} disabled={refreshing}
-                    className="p-2 bg-slate-950/80 border border-white/[0.06] rounded-xl text-slate-400
-                               hover:text-amber-300 transition-all disabled:opacity-40"
-                    title="Sincronizar">
-              <ArrowsClockwise size={16} className={refreshing ? 'animate-spin' : ''} />
-            </button>
-
-            <button onClick={() => setShowNewMenu(true)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-amber-300 text-slate-900 rounded-xl
-                               text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-all shadow-lg">
-              <Plus size={14} weight="bold" /> NUEVO
-            </button>
-          </div>
-        </div>
-
-        {/* Fila 2: Categorías + búsqueda */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Tabs categoría con contadores */}
-          <div className="flex gap-1 p-1 bg-slate-950/80 rounded-xl border border-white/[0.06] flex-wrap">
-            {cats.map(cat => {
-              const cfg = CAT_CONFIG[cat];
-              const isActive = currentCat === cat;
-              return (
-                <button key={cat} onClick={() => setCurrentCat(cat)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
-                        style={isActive
-                          ? { backgroundColor: cfg.bg, color: cfg.color }
-                          : { color: '#475569' }}>
-                  {cat}
-                  <span className="text-[8px] opacity-70">{countByCat[cat]}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Búsqueda */}
-          <div className="relative flex-1 min-w-[180px]">
-            <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
-            <input type="text" placeholder="Buscar por nombre, zona, teléfono..."
-                   value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                   className="w-full bg-slate-950/80 border border-white/[0.06] rounded-xl pl-8 pr-4 py-2
-                              text-[11px] text-white placeholder:text-slate-700 focus:outline-none focus:border-amber-300/30 transition-all" />
-          </div>
-        </div>
-
-        {/* Fila 3: Mini KPIs de urgencia */}
-        <StatsBar clients={filteredClients} />
-      </div>
-
-      {/* ── VISTA KANBAN ── */}
-      {viewMode === 'KANBAN' && (
-        <div className="flex-1 min-h-0 flex gap-3 overflow-x-auto pb-3" style={{ scrollbarWidth: 'thin' }}>
-          {STAGES.map(stage => {
-            const col = filteredClients.filter(c => (c.etapa || 'INGRESO') === stage.id);
-            const colVencidos = col.filter(c => getHealthStatus(c).status === 'vencido').length;
+      {/* HEADER PRINCIPAL */}
+      <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 shrink-0">
+        <div className="flex gap-2 bg-slate-900/50 p-1 rounded-xl border border-white/[0.05]">
+          {Object.keys(FUNNELS).map(key => {
+            const f = FUNNELS[key];
+            const isActive = currentFunnel === key;
             return (
-              <div key={stage.id}
-                   className="min-w-[260px] w-[260px] bg-slate-900/30 rounded-2xl border border-white/[0.05]
-                              flex flex-col h-full"
-                   onDragOver={e => e.preventDefault()}
-                   onDrop={e => handleDrop(e, stage.id)}>
-                {/* Header columna */}
-                <div className="px-3 py-2.5 flex items-center justify-between border-b border-white/[0.04] shrink-0">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full"
-                         style={{ backgroundColor: stage.color, boxShadow: `0 0 6px ${stage.color}` }} />
-                    <span className="text-[9px] font-black text-slate-400 tracking-[0.18em] uppercase">{stage.label}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {colVencidos > 0 && (
-                      <span className="text-[8px] font-black text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded-full">
-                        {colVencidos} ⚠
-                      </span>
-                    )}
-                    <span className="text-[9px] font-bold bg-slate-800/60 text-slate-500 px-1.5 py-0.5 rounded-full">{col.length}</span>
-                  </div>
-                </div>
-                {/* Cards */}
-                <div className="p-2 flex-1 overflow-y-auto space-y-2" style={{ scrollbarWidth: 'none' }}>
-                  <AnimatePresence>
-                    {col.map(client => (
-                      <KanbanCard key={client.id} client={client}
-                                  onSelect={openModal} onDragStart={setDraggedItemId} />
-                    ))}
-                  </AnimatePresence>
-                  {col.length === 0 && (
-                    <div className="flex items-center justify-center h-20 text-[9px] text-slate-700 uppercase tracking-widest">
-                      Sin clientes
-                    </div>
-                  )}
-                </div>
-              </div>
+              <button key={key} onClick={() => setCurrentFunnel(key)}
+                      className={`px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${isActive ? 'shadow-md' : 'hover:bg-white/5'}`}
+                      style={isActive ? { backgroundColor: f.bg, color: f.color } : { color: '#64748b' }}>
+                {f.label}
+              </button>
             );
           })}
         </div>
-      )}
 
-      {/* ── VISTA AGENDA ── */}
-      {viewMode === 'AGENDA' && (
-        <div className="flex-1 min-h-0 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Vencidos */}
-            <div>
-              <h5 className="text-[9px] font-black text-red-400 tracking-[0.2em] uppercase flex items-center gap-1.5 mb-3 px-1">
-                <WarningCircle weight="fill" size={11} /> Vencidos ({filteredClients.filter(c => getHealthStatus(c).status === 'vencido').length})
-              </h5>
-              <div className="space-y-2">
-                {filteredClients
-                  .filter(c => getHealthStatus(c).status === 'vencido')
-                  .map(c => <AgendaCard key={c.id} client={c} onSelect={openModal} />)}
-              </div>
-            </div>
-            {/* Hoy */}
-            <div>
-              <h5 className="text-[9px] font-black text-amber-400 tracking-[0.2em] uppercase flex items-center gap-1.5 mb-3 px-1">
-                <CalendarCheck weight="fill" size={11} /> Hoy ({filteredClients.filter(c => getHealthStatus(c).status === 'hoy').length})
-              </h5>
-              <div className="space-y-2">
-                {filteredClients
-                  .filter(c => getHealthStatus(c).status === 'hoy')
-                  .map(c => <AgendaCard key={c.id} client={c} onSelect={openModal} />)}
-              </div>
-            </div>
-            {/* Próximos */}
-            <div>
-              <h5 className="text-[9px] font-black text-blue-400 tracking-[0.2em] uppercase flex items-center gap-1.5 mb-3 px-1">
-                <CalendarBlank weight="fill" size={11} /> Próximos ({filteredClients.filter(c => ['proximo','ok'].includes(getHealthStatus(c).status)).length})
-              </h5>
-              <div className="space-y-2">
-                {filteredClients
-                  .filter(c => ['proximo','ok'].includes(getHealthStatus(c).status))
-                  .map(c => <AgendaCard key={c.id} client={c} onSelect={openModal} />)}
-              </div>
-              {/* Sin agenda */}
-              {filteredClients.filter(c => !c.agenda).length > 0 && (
-                <div className="mt-4">
-                  <h5 className="text-[9px] font-black text-slate-600 tracking-[0.2em] uppercase flex items-center gap-1.5 mb-2 px-1">
-                    Sin agendar ({filteredClients.filter(c => !c.agenda).length})
-                  </h5>
-                  <div className="space-y-2">
-                    {filteredClients.filter(c => !c.agenda).map(c => <AgendaCard key={c.id} client={c} onSelect={openModal} />)}
-                  </div>
-                </div>
-              )}
-            </div>
+        <div className="flex gap-3 items-center">
+          <div className="relative w-full lg:w-64">
+            <MagnifyingGlass size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+            <input type="text" placeholder="Buscar cliente..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                   className="w-full bg-slate-900/50 border border-white/[0.05] rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-400/30 transition-colors" />
           </div>
+          
+          <button onClick={() => setShowBulkImport(true)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors border border-white/5" title="Importar Excel">
+            <FileXlsx size={16} weight="duotone" className="text-emerald-400" /> <span className="hidden md:inline">Importar</span>
+          </button>
+          
+          <button onClick={() => fetchClients(true)} disabled={refreshing} className="p-2.5 bg-slate-800 rounded-xl text-slate-400 hover:text-amber-400 transition-colors border border-white/5 disabled:opacity-50">
+            <ArrowsClockwise size={16} className={refreshing ? 'animate-spin' : ''} />
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* ── MODAL GESTIÓN ── */}
+      {/* KANBAN BOARD */}
+      <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 custom-scroll">
+        {STAGES.map(stage => {
+          const col = filteredClients.filter(c => (c.etapa || 'INGRESO') === stage.id);
+          return (
+            <div key={stage.id} className="min-w-[280px] w-[280px] bg-slate-900/20 rounded-2xl border border-white/[0.03] flex flex-col h-full"
+                 onDragOver={e => e.preventDefault()} onDrop={e => handleDrop(e, stage.id)}>
+              <div className="px-4 py-3 flex items-center justify-between border-b border-white/[0.03] shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color, boxShadow: `0 0 8px ${stage.color}` }} />
+                  <span className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">{stage.label}</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded-md border border-white/5">{col.length}</span>
+              </div>
+              <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scroll">
+                <AnimatePresence>
+                  {col.map(client => (
+                    <KanbanCard key={client.id} client={client} funnelKey={currentFunnel} onSelect={openModal} onDragStart={setDraggedItemId} />
+                  ))}
+                </AnimatePresence>
+                {col.length === 0 && (
+                  <div className="flex items-center justify-center h-24 text-[10px] text-slate-700 font-bold uppercase tracking-widest border-2 border-dashed border-white/5 rounded-xl">
+                    Vacío
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* SIDE PANEL (SLIDE-OVER) */}
       <AnimatePresence>
         {selectedClient && (
-          <GestionModal
-            client={selectedClient}
-            onClose={() => setSelectedClient(null)}
-            onSave={handleSaveModal}
-            saving={saving}
-          />
+          <SidePanel client={selectedClient} onClose={() => setSelectedClient(null)} onSave={handleSaveModal} saving={saving} />
         )}
       </AnimatePresence>
 
-      {/* ── MODAL NUEVO ── */}
+      {/* BULK IMPORT MODAL */}
       <AnimatePresence>
-        {showNewMenu && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-6"
-            onClick={() => setShowNewMenu(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 16 }}
-              transition={{ type: 'spring', damping: 25 }}
-              className="bg-[#0b1120] border border-white/10 p-7 rounded-3xl w-full max-w-sm text-center shadow-2xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="w-14 h-14 bg-amber-300/10 rounded-2xl flex items-center justify-center mx-auto mb-5 text-amber-300">
-                <UserPlus size={28} weight="duotone" />
-              </div>
-              <h3 className="text-lg font-black text-white mb-1 uppercase tracking-tight">Nuevo Registro</h3>
-              <p className="text-slate-500 text-[10px] mb-6 uppercase tracking-widest">Seleccioná el tipo de cliente</p>
-              <div className="space-y-2.5">
-                {[
-                  { type: 'COMPRADOR', icon: <MagnifyingGlass weight="bold" />, color: '#38bdf8', label: 'Busca Propiedad', sub: 'Comprador o Inquilino', bg: 'rgba(56,189,248,0.08)' },
-                  { type: 'VENDEDOR',  icon: <Buildings weight="bold" />,       color: '#fb923c', label: 'Ofrece Propiedad', sub: 'Vendedor o Propietario', bg: 'rgba(251,146,60,0.08)' },
-                ].map(item => (
-                  <button key={item.type}
-                          onClick={() => { setShowNewMenu(false); navigate(item.type === 'COMPRADOR' ? '/compradores' : '/vendedores'); }}
-                          className="w-full group flex items-center gap-4 p-4 rounded-2xl border border-white/[0.06] transition-all text-left hover:border-white/20"
-                          style={{ backgroundColor: item.bg }}>
-                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: item.color + '20', color: item.color }}>{item.icon}</div>
-                    <div className="flex-1">
-                      <span className="block text-sm font-black text-white uppercase">{item.label}</span>
-                      <span className="block text-[9px] text-slate-500 mt-0.5">{item.sub}</span>
-                    </div>
-                    <ArrowRight size={14} style={{ color: item.color }} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setShowNewMenu(false)}
-                      className="mt-6 text-[9px] font-black text-slate-600 hover:text-white uppercase tracking-[0.2em] transition-colors">
-                Cancelar
-              </button>
-            </motion.div>
-          </motion.div>
+        {showBulkImport && (
+          <BulkImport onClose={() => setShowBulkImport(false)} onImportSuccess={() => fetchClients(true)} />
         )}
       </AnimatePresence>
     </div>
