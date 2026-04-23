@@ -187,7 +187,7 @@ export default function Visitas() {
               </div>
 
               {/* SECCIÓN 3: DATOS PROPIEDAD */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative z-50">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <House size={16} /> Propiedad Visitada
                 </h3>
