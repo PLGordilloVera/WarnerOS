@@ -303,7 +303,7 @@ export default function Rendimiento() {
       </div>
 
       {/* CHATBOT AI */}
-      <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[60] flex flex-col items-end gap-4">
+      <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex flex-col items-end gap-4">
         <AnimatePresence>
             {chatOpen && (
                 <motion.div 

@@ -152,7 +152,7 @@ const SidePanel = ({ client, onClose, onSave, saving }) => {
     <>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       <motion.div
@@ -160,7 +160,7 @@ const SidePanel = ({ client, onClose, onSave, saving }) => {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed top-0 right-0 bottom-0 z-[110] w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-[#080e1a] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-40 w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-[#080e1a] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="relative p-6 border-b border-white/[0.06] shrink-0"
@@ -416,8 +416,8 @@ export default function CRM() {
   );
 
   return (
-    <div className="flex flex-col h-full bg-[#040810] p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/[0.05] shadow-2xl relative overflow-hidden">
-      <Toaster position="top-center" theme="dark" richColors />
+    <div className="flex flex-col h-full bg-[#040810] p-4 md:p-6 rounded-2xl border border-white/[0.05] shadow-2xl relative overflow-hidden">
+      <Toaster position="top-center" theme="dark" richColors containerStyle={{ zIndex: 100 }} />
 
       {/* HEADER PRINCIPAL */}
       <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 shrink-0">
@@ -453,7 +453,7 @@ export default function CRM() {
       </div>
 
       {/* KANBAN BOARD */}
-      <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 custom-scroll">
+      <div className="flex-1 min-h-0 flex gap-4 overflow-x-auto pb-4 custom-scroll snap-x">
         {STAGES.map(stage => {
           const col = filteredClients.filter(c => (c.etapa || 'INGRESO') === stage.id);
           return (

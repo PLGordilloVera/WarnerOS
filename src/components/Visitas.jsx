@@ -117,21 +117,22 @@ export default function Visitas() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 font-sans overflow-y-auto overflow-x-hidden custom-scroll relative selection:bg-amber-500/30 selection:text-amber-900">
-      <Toaster position="top-center" theme="dark" richColors />
+    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 font-sans overflow-hidden flex flex-col relative selection:bg-amber-500/30 selection:text-amber-900">
+      <Toaster position="top-center" theme="dark" richColors containerStyle={{ zIndex: 100 }} />
 
       {/* Fondos Ambientales */}
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
-      {/* Botón Volver */}
-      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="fixed top-4 left-4 z-50 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
+      {/* Botón Volver - Z-INDEX 30 (NAVEGACIÓN GLOBAL) */}
+      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="absolute top-4 left-4 z-30 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
         <CaretRight size={14} weight="bold" className="rotate-180 text-slate-400 group-hover:text-amber-200 transition-colors" />
         <span className="text-xs font-bold text-slate-400 group-hover:text-amber-200 uppercase tracking-widest transition-colors">Volver</span>
       </button>
 
-      <div className="min-h-full flex justify-center p-4 pt-20 pb-32">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl relative z-10">
+      {/* Contenedor Scrollable */}
+      <div className="flex-1 overflow-y-auto custom-scroll min-h-0 relative z-10 p-4 pt-20 pb-32 flex justify-center items-start">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl relative">
             
             <div className="text-center mb-10">
               <div className="inline-flex p-4 rounded-3xl bg-slate-900/50 border border-white/10 shadow-xl mb-4">
@@ -146,11 +147,11 @@ export default function Visitas() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
               {/* SECCIÓN 1: RESPONSABLE */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <User size={16} /> Responsable
                 </h3>
-                <div className="relative flex items-center bg-slate-950/50 border border-white/10 rounded-2xl p-4 text-slate-200">
+                <div className="relative flex items-center bg-slate-950/50 border border-white/10 rounded-xl p-4 text-slate-200">
                     <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center mr-4 border border-amber-500/30">
                         <User size={20} className="text-amber-200" weight="fill" />
                     </div>
@@ -162,7 +163,7 @@ export default function Visitas() {
               </div>
 
               {/* SECCIÓN 2: DATOS CLIENTE */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <IdentificationCard size={16} /> Datos del Cliente
                 </h3>
@@ -187,7 +188,8 @@ export default function Visitas() {
               </div>
 
               {/* SECCIÓN 3: DATOS PROPIEDAD */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative z-50">
+              {/* Z-INDEX 10 para no tapar dropdowns globales pero mantener jerarquía sobre otros cards */}
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-10">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <House size={16} /> Propiedad Visitada
                 </h3>
@@ -211,6 +213,7 @@ export default function Visitas() {
                         <AnimatePresence>
                             {isDropdownOpen && !loadingProps && (
                             <motion.ul initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} 
+                                /* Z-INDEX 50 PARA DROPDOWNS */
                                 className="absolute z-50 w-full mt-2 bg-slate-900 border border-white/10 rounded-xl shadow-2xl max-h-64 overflow-y-auto custom-scroll overflow-x-hidden">
                                 {filteredProperties.length > 0 ? (
                                 filteredProperties.map((prop, idx) => (
@@ -220,7 +223,7 @@ export default function Visitas() {
                                     </li>
                                 ))
                                 ) : <li className="px-4 py-6 text-slate-600 text-xs text-center uppercase tracking-widest">Sin resultados</li>}
-                                <li onClick={() => { setFormData({...formData, 'PADRON_CATASTRAL':'COMPARTIDA'}); setSearchTerm('PROPIEDAD COMPARTIDA'); setIsDropdownOpen(false); }} className="px-5 py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 cursor-pointer border-t border-white/10 flex items-center gap-3 font-bold sticky bottom-0 backdrop-blur-md">
+                                <li onClick={() => { setFormData({...formData, 'PADRON_CATASTRAL':'COMPARTIDA'}); setSearchTerm('PROPIEDAD Compartida'); setIsDropdownOpen(false); }} className="px-5 py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 cursor-pointer border-t border-white/10 flex items-center gap-3 font-bold sticky bottom-0 backdrop-blur-md">
                                     <Funnel size={16} weight="fill" /><span className="text-xs uppercase tracking-wider">Propiedad Compartida / Otra</span>
                                 </li>
                             </motion.ul>
@@ -258,7 +261,7 @@ export default function Visitas() {
               </div>
 
               {/* SECCIÓN 4: EVALUACIÓN */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                    Calificación del Inmueble (1-10)
                 </h3>
@@ -280,7 +283,7 @@ export default function Visitas() {
               </div>
 
               {/* SECCIÓN 5: CIERRE */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4">Oferta y Moneda</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
@@ -306,7 +309,7 @@ export default function Visitas() {
               </div>
 
               <button type="submit" disabled={loading}
-                className="w-full bg-gradient-to-r from-amber-200 to-amber-500 text-slate-900 font-black py-5 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.2)] hover:shadow-[0_0_50px_rgba(251,191,36,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mt-8 text-sm uppercase tracking-widest hover:brightness-110">
+                className="w-full bg-gradient-to-r from-amber-200 to-amber-500 text-slate-900 font-black py-5 rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mt-8 text-sm uppercase tracking-widest hover:brightness-110">
                 {loading ? <SpinnerGap size={24} className="animate-spin" /> : <> <CheckCircle size={24} weight="fill"/> REGISTRAR VISITA</>}
               </button>
 

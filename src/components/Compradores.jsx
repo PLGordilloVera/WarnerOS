@@ -12,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Compradores() {
   const navigate = useNavigate();
-  const { user } = useAppStore();
+  const { user, token, userEmail } = useAppStore();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -46,22 +46,30 @@ export default function Compradores() {
     const payload = {
       action: 'addComprador',
       agente: user?.name, // Auto-asignado
+      token,
+      userEmail,
       ...formData
     };
 
     try {
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      toast.success("¡Cliente registrado exitosamente!");
+      const data = await response.json();
       
-      setFormData({
-        origen: '', nombre_cliente: '', telefono: '', email: '',
-        operacion: 'COMPRA', tipo_inmueble: '', ambientes: '', cochera: '',
-        piso: '', zona: '', moneda: 'DOLARES', presupuesto: '',
-        credito: 'NO', observaciones: ''
-      });
+      if(data.status === 'success') {
+        toast.success("¡Cliente registrado exitosamente!");
+        setFormData({
+          origen: '', nombre_cliente: '', telefono: '', email: '',
+          operacion: 'COMPRA', tipo_inmueble: '', ambientes: '', cochera: '',
+          piso: '', zona: '', moneda: 'DOLARES', presupuesto: '',
+          credito: 'NO', observaciones: ''
+        });
+      } else {
+        toast.error("Error: " + data.message);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Error de conexión");
@@ -71,21 +79,21 @@ export default function Compradores() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 font-sans overflow-y-auto overflow-x-hidden custom-scroll relative selection:bg-amber-500/30 selection:text-amber-900">
-      <Toaster position="top-center" theme="dark" richColors />
+    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 font-sans overflow-hidden flex flex-col relative selection:bg-amber-500/30 selection:text-amber-900">
+      <Toaster position="top-center" theme="dark" richColors containerStyle={{ zIndex: 100 }} />
 
       {/* Fondos Ambientales Warner */}
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
-      {/* Botón Volver */}
-      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="fixed top-4 left-4 z-50 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
+      {/* Botón Volver - Z-30 */}
+      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="absolute top-4 left-4 z-30 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
         <CaretRight size={14} weight="bold" className="rotate-180 text-slate-400 group-hover:text-amber-200 transition-colors" />
         <span className="text-xs font-bold text-slate-400 group-hover:text-amber-200 uppercase tracking-widest transition-colors">Volver</span>
       </button>
 
-      <div className="min-h-full flex justify-center p-4 pt-20 pb-32">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl relative z-10">
+      <div className="flex-1 overflow-y-auto custom-scroll min-h-0 relative z-10 p-4 pt-20 pb-32 flex justify-center items-start">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl relative">
             
             <div className="text-center mb-10">
               <div className="inline-flex p-4 rounded-3xl bg-slate-900/50 border border-white/10 shadow-xl mb-4">
@@ -100,7 +108,7 @@ export default function Compradores() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
               {/* SECCIÓN 1: GESTIÓN INTERNA */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <Briefcase size={16} /> Gestión Interna
                 </h3>
@@ -134,7 +142,7 @@ export default function Compradores() {
               </div>
 
               {/* SECCIÓN 2: DATOS CLIENTE */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <User size={16} /> Datos del Cliente
                 </h3>
@@ -163,7 +171,7 @@ export default function Compradores() {
               </div>
 
               {/* SECCIÓN 3: PERFIL DE BÚSQUEDA */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <Buildings size={16} /> Perfil de Búsqueda
                 </h3>
@@ -223,7 +231,7 @@ export default function Compradores() {
               </div>
 
               {/* SECCIÓN 4: PRESUPUESTO */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <Money size={16} /> Inversión
                 </h3>
@@ -264,7 +272,7 @@ export default function Compradores() {
               </div>
 
               {/* OBS */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl relative z-0">
                  <label className="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block tracking-wider">Observaciones</label>
                  <textarea name="observaciones" rows="3" placeholder="Detalles extra..." value={formData.observaciones} onChange={handleChange}
                     className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-4 text-slate-200 focus:border-amber-200/50 focus:outline-none uppercase text-sm custom-scroll" />
@@ -272,7 +280,7 @@ export default function Compradores() {
 
               {/* Botón Submit */}
               <button type="submit" disabled={loading}
-                className="w-full bg-gradient-to-r from-amber-200 to-amber-500 text-slate-900 font-black py-5 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.2)] hover:shadow-[0_0_50px_rgba(251,191,36,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mt-8 text-sm uppercase tracking-widest hover:brightness-110">
+                className="w-full bg-gradient-to-r from-amber-200 to-amber-500 text-slate-900 font-black py-5 rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mt-8 text-sm uppercase tracking-widest hover:brightness-110">
                 {loading ? <SpinnerGap size={24} className="animate-spin" /> : <> <UserPlus size={24} weight="fill"/> REGISTRAR CLIENTE</>}
               </button>
 

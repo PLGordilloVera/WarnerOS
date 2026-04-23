@@ -157,7 +157,7 @@ export default function Dashboard() {
       </div>
 
       {/* --- HEADER ESCRITORIO --- */}
-      <header className="hidden md:flex absolute top-8 left-1/2 -translate-x-1/2 z-50 items-center p-2 bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/5 w-auto max-w-[98vw]">
+      <header className="hidden md:flex fixed top-8 left-1/2 -translate-x-1/2 z-30 items-center p-2 bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/5 w-auto max-w-[98vw]">
         <div className="flex items-center gap-6 pl-8 pr-6 border-r border-white/10 shrink-0">
            <WarnerLogoSmall />
            <span className="font-black tracking-[0.2em] text-sm text-white hidden xl:block uppercase">WARNER OS</span>
@@ -190,7 +190,7 @@ export default function Dashboard() {
       </header>
 
       {/* --- HEADER MÓVIL --- */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 z-50 sticky top-0">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 z-30 sticky top-0 shrink-0">
         <div className="flex items-center gap-3">
           <WarnerLogoSmall />
           <span className="font-bold text-white tracking-widest text-xs uppercase">Warner OS</span>
@@ -206,7 +206,7 @@ export default function Dashboard() {
       </header>
 
       {/* --- CONTENIDO PRINCIPAL --- */}
-      <main className="flex-1 w-full h-full pt-4 md:pt-36 px-4 md:px-8 pb-24 md:pb-6 overflow-hidden relative z-10">
+      <main className="flex-1 w-full h-full pt-4 md:pt-40 px-4 md:px-8 pb-24 md:pb-8 overflow-hidden relative z-10">
         <AnimatePresence mode="wait">
           
           {activeView === 'CRM' && (
@@ -221,7 +221,7 @@ export default function Dashboard() {
                 initial={{opacity:0}} 
                 animate={{opacity:1}} 
                 exit={{opacity:0}} 
-                className="h-full w-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl relative bg-slate-950/50 backdrop-blur-sm"
+                className="h-full w-full rounded-2xl overflow-hidden shadow-2xl relative bg-slate-950/50 backdrop-blur-sm border border-white/5"
             >
                 <Rendimiento />
             </motion.div>
@@ -263,7 +263,8 @@ export default function Dashboard() {
           )}
 
           {activeView === 'FORMS' && (
-             <motion.div key="FORMS" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto overflow-y-auto custom-scroll pb-20 px-1 md:px-4">
+             <motion.div key="FORMS" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto overflow-hidden flex flex-col px-1 md:px-4">
+                <div className="flex-1 overflow-y-auto custom-scroll pb-24 pr-1">
                 <header className="mb-6 md:mb-8 mt-2 md:mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
                         <button onClick={() => setActiveView('HUB')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-amber-200 mb-2 md:mb-4 transition-colors flex items-center gap-2">
@@ -272,14 +273,15 @@ export default function Dashboard() {
                         <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">Formularios <span className="text-amber-200">Maestros</span></h2>
                     </div>
                 </header>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5">
-                    {LINKS_FORMULARIOS.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5">
+                      {LINKS_FORMULARIOS.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
+                  </div>
                 </div>
              </motion.div>
           )}
 
           {activeView === 'BBDD' && (
-             <motion.div key="BBDD" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto flex flex-col overflow-hidden pb-20 px-1 md:px-4">
+             <motion.div key="BBDD" initial={{opacity:0, x:20}} animate={{opacity:1, x:0}} exit={{opacity:0, x:-20}} className="h-full w-full mx-auto flex flex-col overflow-hidden px-1 md:px-4">
                 <header className="mb-6 md:mb-8 mt-2 md:mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
                     <div>
                         <button onClick={() => selectedBBDD ? setSelectedBBDD(null) : setActiveView('HUB')} className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-amber-200 mb-2 md:mb-4 transition-colors flex items-center gap-2">
@@ -297,7 +299,7 @@ export default function Dashboard() {
                 </header>
                 
                 {selectedBBDD ? (
-                  <div className="flex-1 bg-slate-900/40 rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
+                  <div className="flex-1 bg-slate-900/40 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative mb-24 md:mb-8">
                     <iframe 
                       src={selectedBBDD.url.replace('/edit', '/preview')} 
                       className="w-full h-full border-0 bg-white"
@@ -305,15 +307,17 @@ export default function Dashboard() {
                     ></iframe>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5 overflow-y-auto custom-scroll pr-2">
-                      {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
+                  <div className="flex-1 overflow-y-auto custom-scroll pr-2 pb-24 md:pb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-5">
+                        {LINKS_BBDD.map((link, idx) => <ActionCard key={idx} link={link} activeView={activeView} setSelectedBBDD={setSelectedBBDD} navigate={navigate} />)}
+                    </div>
                   </div>
                 )}
              </motion.div>
           )}
 
           {activeView === 'MAPA' && (
-             <motion.div key="MAPA" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="h-full w-full bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden relative shadow-2xl">
+             <motion.div key="MAPA" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="h-full w-full bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl mb-24 md:mb-8">
                 <button onClick={() => setActiveView('HUB')} className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs font-bold text-white flex items-center gap-2 hover:border-amber-200 transition-colors shadow-lg">
                     <CaretRight size={12} weight="bold" className="rotate-180" /> Volver
                 </button>
@@ -331,7 +335,7 @@ export default function Dashboard() {
       </main>
 
       {/* --- BARRA DE NAVEGACIÓN INFERIOR (Solo Móvil) --- */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-2xl border-t border-white/10 z-50 px-6 py-2 flex justify-between items-center pb-safe-area">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-2xl border-t border-white/10 z-30 px-6 py-2 flex justify-between items-center pb-safe-area">
           <NavItem view="CRM" mobile icon={<Kanban size={24} weight="duotone" />} label="Pipeline" activeView={activeView} setActiveView={setActiveView} />
           <NavItem view="RENDIMIENTO" mobile icon={<ChartLineUp size={24} weight="duotone" />} label="Data" activeView={activeView} setActiveView={setActiveView} />
           <NavItem view="HUB" mobile icon={<Sparkle size={24} weight="fill" />} label="Hub" activeView={activeView} setActiveView={setActiveView} />

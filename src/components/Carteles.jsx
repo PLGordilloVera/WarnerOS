@@ -140,20 +140,21 @@ export default function Carteles() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-white font-sans overflow-y-auto overflow-x-hidden custom-scroll relative selection:bg-amber-500/30 selection:text-amber-900">
-      <Toaster position="top-center" theme="dark" richColors />
+    <div className="h-[100dvh] w-full bg-slate-950 text-white font-sans overflow-hidden flex flex-col relative selection:bg-amber-500/30 selection:text-amber-900">
+      <Toaster position="top-center" theme="dark" richColors containerStyle={{ zIndex: 100 }} />
 
       {/* Fondos Ambientales Warner */}
-      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
-      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="fixed top-4 left-4 z-50 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
+      {/* Z-INDEX 30 NAVEGACION GLOBAL */}
+      <button onClick={() => navigate('/', { state: { view: 'FORMS' } })} className="absolute top-4 left-4 z-30 group flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-full hover:border-amber-200/50 transition-all shadow-lg active:scale-95">
         <CaretRight size={14} weight="bold" className="rotate-180 text-slate-400 group-hover:text-amber-200 transition-colors" />
         <span className="text-xs font-bold text-slate-400 group-hover:text-amber-200 uppercase tracking-widest transition-colors">Volver</span>
       </button>
 
-      <div className="min-h-full flex justify-center p-4 pt-20 pb-32">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg relative z-10">
+      <div className="flex-1 overflow-y-auto custom-scroll min-h-0 relative z-10 p-4 pt-20 pb-32 flex justify-center items-start">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg relative">
             
             <div className="text-center mb-10">
               <div className="inline-flex p-4 rounded-3xl bg-slate-900/50 border border-white/10 shadow-xl mb-4">
@@ -168,7 +169,7 @@ export default function Carteles() {
             <form onSubmit={handleSubmit} className="space-y-6">
             
               {/* TARJETA 1: RESPONSABLE */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative z-0">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-0">
                 <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
                   <User size={16} /> Responsable
                 </h3>
@@ -184,7 +185,7 @@ export default function Carteles() {
               </div>
 
               {/* TARJETA 2: PROPIEDAD */}
-              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative z-50">
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative z-10">
                  <label className="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block tracking-wider">Propiedad (Pendiente de Cartel)</label>
                  
                  <div className="relative" ref={dropdownRef}>
