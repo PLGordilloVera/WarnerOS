@@ -1,14 +1,27 @@
 import { create } from 'zustand';
 
 /**
+ * Función segura para leer y parsear datos de localStorage
+ */
+const safeGetJSON = (key) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error(`Error parsing localStorage key "${key}":`, error);
+    return null;
+  }
+};
+
+/**
  * Gestor de estado global de la aplicación.
  * Implementación del patrón Store utilizando Zustand.
  */
 export const useAppStore = create((set) => ({
   // --- Estado Global ---
-  user: JSON.parse(localStorage.getItem('warner_user')) || null,
+  user: safeGetJSON('warner_user'),
   token: localStorage.getItem('warner_token') || null,
-  userEmail: JSON.parse(localStorage.getItem('warner_user'))?.email || null,
+  userEmail: safeGetJSON('warner_user')?.email || null,
   
   // Verificamos si hay token guardado para permitir el acceso
   isAuthenticated: !!localStorage.getItem('warner_token'),

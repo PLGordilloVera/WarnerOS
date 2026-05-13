@@ -60,7 +60,7 @@ const Select = ({ label, name, value, onChange, options, className="", ...props 
 
 export default function Valuacion() {
   const navigate = useNavigate();
-  const { user } = useAppStore();
+  const { user, token, userEmail } = useAppStore();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -101,6 +101,8 @@ export default function Valuacion() {
     // MAPEO EXACTO: "COLUMNA DE SHEET" : valor_del_state
     const payload = {
       action: 'addValuacion',
+      token,
+      userEmail,
       
       // Identificación
       "AGENTE INMOBILIARIO": user?.name || "SIN AGENTE",
@@ -170,19 +172,29 @@ export default function Valuacion() {
     };
 
     try {
-      // Usamos mode: 'no-cors' si tienes problemas, pero idealmente maneja la respuesta
-      await fetch(API_URL, { 
+      const response = await fetch(API_URL, { 
         method: 'POST', 
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8', // Recomendado para GAS
+        },
         body: JSON.stringify(payload)
       });
       
-      // Asumimos éxito si no salta al catch (con no-cors no podemos leer respuesta)
+      if (!response.ok) {
+        throw new Error(`Error en el servidor: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status !== 'success') {
+         throw new Error(result.message || result.error || 'Error desconocido en el backend');
+      }
+
       toast.success("¡Valuación enviada al sistema!");
       setTimeout(() => navigate('/', { state: { view: 'FORMS' } }), 1500);
       
     } catch (err) {
       console.error(err);
-      toast.error("Error de conexión al enviar");
+      toast.error(err.message || "Error al comunicarse con el servidor");
     } finally {
       setLoading(false);
     }

@@ -118,13 +118,13 @@ export default function Procedimientos({ setActiveView }) {
              </div>
               <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="procedimientos/captacion/POE_Captacion.pdf#toolbar=0" 
+                  src="/procedimientos/captacion/POE_Captacion.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Captación"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="procedimientos/captacion/POE_Captacion.pdf" 
+                    href="/procedimientos/captacion/POE_Captacion.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
@@ -208,13 +208,13 @@ export default function Procedimientos({ setActiveView }) {
              </div>
               <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="procedimientos/visitas/POE_Visitas.pdf#toolbar=0" 
+                  src="/procedimientos/visitas/POE_Visitas.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Visitas"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="procedimientos/visitas/POE_Visitas.pdf" 
+                    href="/procedimientos/visitas/POE_Visitas.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
@@ -298,13 +298,13 @@ export default function Procedimientos({ setActiveView }) {
              </div>
               <div className="flex-1 bg-slate-950/50 relative">
                 <iframe 
-                  src="procedimientos/reservas/POE_Reservas.pdf#toolbar=0" 
+                  src="/procedimientos/reservas/POE_Reservas.pdf#toolbar=0" 
                   className="w-full h-full border-0"
                   title="PDF POE Reservas"
                 ></iframe>
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <a 
-                    href="procedimientos/reservas/POE_Reservas.pdf" 
+                    href="/procedimientos/reservas/POE_Reservas.pdf" 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
@@ -340,6 +340,96 @@ export default function Procedimientos({ setActiveView }) {
                   </li>
                   <li className="flex items-center gap-2 text-[11px] text-slate-400">
                     <div className="w-1 h-1 rounded-full bg-amber-400" /> El cierre de la oferta y compromiso de venta.
+                  </li>
+                </ul>
+             </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const CierreDetail = () => {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        exit={{ opacity: 0, y: -20 }}
+        className="w-full max-w-6xl space-y-8"
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-2 uppercase">Protocolo de <span className="text-amber-200">Cierre de Operación</span></h2>
+            <p className="text-slate-400 text-sm">POE Documentación final, escribanía y post-venta.</p>
+          </div>
+          <button 
+            onClick={() => setSelectedSubSection(null)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-800/60 border border-white/10 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"
+          >
+            <X size={16} weight="bold" /> Cerrar Detalle
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col h-[600px] shadow-2xl group">
+             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-slate-900/60">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500/20 rounded-lg text-red-400"><FilePdf size={20} weight="fill" /></div>
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-300">Documento POE Cierre</span>
+                </div>
+                <a 
+                  href="/procedimientos/cierre/Procedimiento Cierre Inmobiliario Tucumán Elite (1).pdf" 
+                  download 
+                  className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white transition-colors"
+                  title="Descargar PDF"
+                >
+                  <DownloadSimple size={20} />
+                </a>
+             </div>
+              <div className="flex-1 bg-slate-950/50 relative">
+                <iframe 
+                  src="/procedimientos/cierre/Procedimiento Cierre Inmobiliario Tucumán Elite (1).pdf#toolbar=0" 
+                  className="w-full h-full border-0"
+                  title="PDF POE Cierre"
+                ></iframe>
+                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <a 
+                    href="/procedimientos/cierre/Procedimiento Cierre Inmobiliario Tucumán Elite (1).pdf" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 bg-amber-400 text-slate-900 rounded-lg font-bold text-[10px] shadow-xl"
+                  >
+                    <CornersOut size={14} weight="bold" /> VER PANTALLA COMPLETA
+                  </a>
+                </div>
+             </div>
+          </div>
+
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col h-[600px] shadow-2xl group">
+             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-slate-900/60">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><PlayCircle size={20} weight="fill" /></div>
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-300">Gestión de Cierre</span>
+                </div>
+             </div>
+             <div className="flex-1 bg-slate-950 flex items-center justify-center relative">
+                <video 
+                  src="/procedimientos/cierre/Gestión_del_Cierre.mp4" 
+                  controls 
+                  className="max-w-full max-h-full"
+                ></video>
+             </div>
+             <div className="p-6 bg-slate-900/40 border-t border-white/5">
+                <h4 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">Puntos Clave del Vídeo</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="w-1 h-1 rounded-full bg-amber-400" /> Preparación de documentación final.
+                  </li>
+                  <li className="flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="w-1 h-1 rounded-full bg-amber-400" /> Coordinación con escribanía y partes.
+                  </li>
+                  <li className="flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="w-1 h-1 rounded-full bg-amber-400" /> Acto de firma, entrega de llaves y post-venta.
                   </li>
                 </ul>
              </div>
@@ -413,12 +503,7 @@ export default function Procedimientos({ setActiveView }) {
             {selectedSubSection === 'captacion' && <CaptacionDetail />}
             {selectedSubSection === 'visita' && <VisitaDetail />}
             {selectedSubSection === 'reserva' && <ReservaDetail />}
-            {['cierre'].includes(selectedSubSection) && (
-               <div className="flex flex-col items-center justify-center h-64 text-slate-500 uppercase tracking-[0.3em] font-black text-xs">
-                  <span>En Desarrollo</span>
-                  <button onClick={() => setSelectedSubSection(null)} className="mt-4 text-amber-200 hover:text-white transition-colors">Volver</button>
-               </div>
-            )}
+            {selectedSubSection === 'cierre' && <CierreDetail />}
           </motion.div>
         )}
       </AnimatePresence>
