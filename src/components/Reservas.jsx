@@ -94,9 +94,9 @@ export default function Reservas() {
     if (!searchTerm) {
         setFilteredProperties(properties);
     } else {
-        const lower = searchTerm.toLowerCase();
+        const lower = (searchTerm || '').toLowerCase();
         setFilteredProperties(properties.filter(p => 
-            p.direccion.toLowerCase().includes(lower) || String(p.padron).includes(lower)
+            (p.direccion || '').toLowerCase().includes(lower)
         ));
     }
   }, [searchTerm, properties]);

@@ -325,6 +325,7 @@ export default function CRM() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showNewClientTypeSelection, setShowNewClientTypeSelection] = useState(false);
 
   const openModal = (client) => setSelectedClient(client);
 
@@ -442,6 +443,10 @@ export default function CRM() {
                    className="w-full bg-slate-900/50 border border-white/[0.05] rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-400/30 transition-colors" />
           </div>
           
+          <button onClick={() => setShowNewClientTypeSelection(true)} className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-amber-500/20 transition-colors border border-amber-500/30" title="Agregar Cliente Individual">
+            <UserPlus size={16} weight="bold" /> <span className="hidden md:inline">Nuevo</span>
+          </button>
+          
           <button onClick={() => setShowBulkImport(true)} className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-colors border border-white/5" title="Importar Excel">
             <FileArrowUp size={16} weight="duotone" className="text-emerald-400" /> <span className="hidden md:inline">Importar</span>
           </button>
@@ -494,6 +499,57 @@ export default function CRM() {
       <AnimatePresence>
         {showBulkImport && (
           <BulkImport onClose={() => setShowBulkImport(false)} onImportSuccess={() => fetchClients(true)} />
+        )}
+      </AnimatePresence>
+
+      {/* NEW CLIENT TYPE SELECTION MODAL */}
+      <AnimatePresence>
+        {showNewClientTypeSelection && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col"
+            >
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <UserPlus size={24} className="text-amber-400" />
+                  Nuevo Cliente
+                </h2>
+                <button onClick={() => setShowNewClientTypeSelection(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col gap-4">
+                <p className="text-slate-400 text-sm text-center mb-2">¿Qué perfil tiene el cliente?</p>
+                <button 
+                  onClick={() => navigate('/compradores')}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-slate-800/50 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all group text-left"
+                >
+                  <div className="p-3 bg-blue-500/20 rounded-lg text-blue-400 group-hover:scale-110 transition-transform shrink-0">
+                    <UserPlus size={24} weight="fill" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold">Comprador / Inquilino</h3>
+                    <p className="text-xs text-slate-500">Busca adquirir o alquilar una propiedad</p>
+                  </div>
+                </button>
+                <button 
+                  onClick={() => navigate('/vendedores')}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-slate-800/50 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all group text-left"
+                >
+                  <div className="p-3 bg-orange-500/20 rounded-lg text-orange-400 group-hover:scale-110 transition-transform shrink-0">
+                    <House size={24} weight="fill" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold">Vendedor / Propietario</h3>
+                    <p className="text-xs text-slate-500">Ofrece una propiedad al mercado</p>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

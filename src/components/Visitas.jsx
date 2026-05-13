@@ -53,7 +53,9 @@ export default function Visitas() {
   const { token, userEmail } = useAppStore();
 
   useEffect(() => {
-    fetch(`${API_URL}?action=getInmuebles&token=${encodeURIComponent(token || '')}&userEmail=${encodeURIComponent(userEmail || '')}`)
+    fetch(`${API_URL}?action=getInmuebles&token=${encodeURIComponent(token || '')}&userEmail=${encodeURIComponent(userEmail || '')}`, {
+      redirect: 'follow'
+    })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setProperties(data);
@@ -73,7 +75,7 @@ export default function Visitas() {
   }, [dropdownRef]);
 
   const filteredProperties = properties.filter(p => 
-    p.direccion.toLowerCase().includes(searchTerm.toLowerCase())
+    (p.direccion || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const handleSelectProperty = (prop) => {

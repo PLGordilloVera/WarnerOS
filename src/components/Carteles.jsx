@@ -68,7 +68,7 @@ export default function Carteles() {
   }, [dropdownRef]);
 
   const filteredProperties = properties.filter(p => 
-    p.direccion.toLowerCase().includes(searchTerm.toLowerCase()) || String(p.padron).includes(searchTerm)
+    (p.direccion || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const handleSelectProperty = (prop) => {
