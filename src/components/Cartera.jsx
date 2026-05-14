@@ -64,11 +64,21 @@ const BooleanToggle = ({ label, isYes, onToggle }) => {
   );
 };
 
+const TextArea = ({ label, name, value, onChange, rows=3, placeholder, className="", ...props }) => (
+  <div className={className}>
+    <label className="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 block tracking-wider">{label}</label>
+    <textarea 
+      name={name} rows={rows} placeholder={placeholder} value={value} onChange={onChange} {...props}
+      className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3.5 text-sm text-slate-200 focus:border-amber-200/50 focus:outline-none transition-all uppercase placeholder:normal-case placeholder:text-slate-600 custom-scroll" 
+    />
+  </div>
+);
+
 // --- 2. COMPONENTE PRINCIPAL ---
 
 export default function Cartera() {
   const navigate = useNavigate();
-  const { user } = useAppStore();
+  const { user, token, userEmail } = useAppStore();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -86,7 +96,8 @@ export default function Cartera() {
     humedad: '', pintura: '', pisos: '', revoques: '', fachada: '',
     fecha_captacion: new Date().toISOString().split('T')[0],
     nombre_propietario: '', celular_propietario: '', email_propietario: '', firmo_exclusividad: 'NO',
-    link_fotos: '', link_videos: '', link_planos: '', link_documentacion: ''
+    link_fotos: '', link_videos: '', link_planos: '', link_documentacion: '',
+    comodidades_de_ubicacion: '', observaciones: ''
   });
 
   const handleChange = (e) => {
@@ -114,6 +125,8 @@ export default function Cartera() {
     // Las claves (lado izquierdo) coinciden EXACTAMENTE con los encabezados del Excel
     const payload = {
       action: 'addCartera',
+      token,
+      userEmail,
       
       // Identificación
       'PADRON_CATASTRAL': formData.padron_catastral,
@@ -189,17 +202,40 @@ export default function Cartera() {
       'LINK_FOTOS': formData.link_fotos,
       'LINK_VIDEOS': formData.link_videos,
       'LINK_PLANOS': formData.link_planos,
-      'LINK DOCUMENTACION': formData.link_documentacion // Excel: LINK DOCUMENTACION (Con espacio)
+      'LINK DOCUMENTACION': formData.link_documentacion, // Excel: LINK DOCUMENTACION (Con espacio)
+      
+      // Extras
+      'COMODIDADES_DE_UBICACION': formData.comodidades_de_ubicacion,
+      'OBSERVACIONES': formData.observaciones
     };
 
+    console.log("🚀 Payload que se envía a Google Sheets:", payload);
+
     try {
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         // Asegúrate de enviar JSON stringify
         body: JSON.stringify(payload) 
       });
-      toast.success("¡Propiedad registrada exitosamente!");
-      setTimeout(() => window.location.reload(), 1500);
+
+      const dataResponse = await response.json();
+      console.log(" RESPUESTA COMPLETA DEL BACKEND:", dataResponse);
+      console.log("🔍 Columnas detectadas:", dataResponse.debug_headers);
+
+      if (dataResponse.reporte_mapeo) {
+        console.group("🛠️ REPORTE DE MAPEO GOOGLE SHEETS");
+        console.log("✅ Coincidieron y se guardaron:", dataResponse.reporte_mapeo.mapeoExitoso);
+        console.warn("⚠️ Columnas en Excel vacías:", dataResponse.reporte_mapeo.columnasVacias);
+        console.error("❌ Ignorados por Sheets (Revisar nombres en Excel):", dataResponse.reporte_mapeo.camposIgnorados);
+        console.groupEnd();
+      }
+
+      if (dataResponse.status === 'error') {
+        toast.error("Error en Google Sheets: " + dataResponse.message, { duration: 8000 });
+      } else {
+        toast.success("¡Propiedad registrada exitosamente!");
+      }
+      // setTimeout(() => window.location.reload(), 1500); // Comentado para depurar
     } catch (err) {
       console.error(err);
       toast.error("Error de conexión");
@@ -282,6 +318,7 @@ export default function Cartera() {
                         <Input label="Ciudad" name="ciudad" value={formData.ciudad} onChange={handleChange} />
                         <Input label="Provincia" name="provincia" value={formData.provincia} onChange={handleChange} />
                     </div>
+                    <Input label="Comodidades de Ubicación" name="comodidades_de_ubicacion" placeholder="Ej: Cerca de parque, avenidas..." value={formData.comodidades_de_ubicacion} onChange={handleChange} />
                 </div>
               </div>
 
@@ -408,6 +445,14 @@ export default function Cartera() {
                     <Input label="Link Video Youtube" name="link_videos" type="url" style={{textTransform:'none'}} value={formData.link_videos} onChange={handleChange} />
                     <Input label="Link Documentación (Drive)" name="link_documentacion" type="url" style={{textTransform:'none'}} value={formData.link_documentacion} onChange={handleChange} />
                 </div>
+              </div>
+
+              {/* SECCIÓN 9: OBSERVACIONES */}
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+                <h3 className="text-xs font-bold text-amber-200/80 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4 flex items-center gap-2">
+                  <FileText size={16} /> Observaciones
+                </h3>
+                <TextArea label="Detalles Adicionales" name="observaciones" placeholder="Escribe aquí cualquier otra observación..." value={formData.observaciones} onChange={handleChange} />
               </div>
 
               {/* Botón Submit */}
